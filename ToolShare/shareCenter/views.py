@@ -493,23 +493,30 @@ def editPassword(request):
     #************************************************************************************
 
 def userDirectory(request):
+    page_size = getattr(settings, 'USERS_DIRECTORY_PAGE_SIZE', 20)
     if not request.user.is_authenticated:
         return HttpResponseRedirect('/login/')
     currentUser = UserProfile.objects.get(user_id=request.user.id)
 
     if (request.user.is_staff):
         zipCode = 'ADMIN'
-        allUsers = UserProfile.objects.all()
-        numUsers = len(allUsers) - 1 #Adjust for admin
+        allUsers = UserProfile.objects.all().order_by('user__username')
+        numUsers = max(allUsers.count() - 1, 0) #Adjust for admin
 
     else:
         zipCode = currentUser.zipCode
-        allUsers = UserProfile.objects.filter(zipCode=currentUser.zipCode)
-        allUsers = allUsers.order_by('user__username')
-        numUsers = len(allUsers)
+        allUsers = UserProfile.objects.filter(zipCode=currentUser.zipCode).order_by('user__username')
+        numUsers = allUsers.count()
+
+    paginator = Paginator(allUsers, page_size)
+    page_obj = paginator.get_page(request.GET.get('page'))
 
     return render(request, 'sharecenter/userdirectory.html', {
-        'zipCode': zipCode, 'allUsers': allUsers, 'numUsers': numUsers})
+        'zipCode': zipCode,
+        'allUsers': page_obj.object_list,
+        'page_obj': page_obj,
+        'numUsers': numUsers,
+    })
 
 #************************************************************************************
 

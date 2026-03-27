@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 
 from shareCenter.models import UserProfile
 from tests.api.base import APITestBase
+from tests.test_config import TEST_USERS_DIRECTORY_PAGE_SIZE
 
 
 class UsersAPIComponentTests(APITestBase):
@@ -24,6 +25,23 @@ class UsersAPIComponentTests(APITestBase):
         self.client.force_login(self.user)
         response = self.client.get("/sharecenter/userdirectory/")
         self.assertEqual(response.status_code, 200)
+
+    def test_POSITIVE_READ_user_directory_supports_pagination(self):
+        self.client.force_login(self.user)
+        for i in range(TEST_USERS_DIRECTORY_PAGE_SIZE + 5):
+            self.create_user_with_profile(
+                f"userneighbor{i:02d}",
+                first_name=f"Neighbor{i:02d}",
+                last_name="User",
+                zip_code=self.profile.zipCode,
+            )
+
+        first_page = self.client.get("/sharecenter/userdirectory/")
+        second_page = self.client.get("/sharecenter/userdirectory/?page=2")
+        self.assertEqual(first_page.status_code, 200)
+        self.assertEqual(second_page.status_code, 200)
+        self.assertContains(first_page, "Page 1 of 2")
+        self.assertContains(second_page, "Page 2 of 2")
 
     def test_POSITIVE_UPDATE_edit_user_info(self):
         self.client.force_login(self.user)
