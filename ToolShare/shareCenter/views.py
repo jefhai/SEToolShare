@@ -232,6 +232,16 @@ def createShed(request):
             address = form.cleaned_data['address']
             city = form.cleaned_data['city']
 
+            duplicate_shed_exists = CommunityShed.objects.filter(
+                owner=uProfile,
+                address__iexact=address.strip(),
+                city__iexact=city.strip(),
+                zipcode=uProfile.zipCode,
+            ).exists()
+            if duplicate_shed_exists:
+                messages.add_message(request, messages.INFO, 'Duplicate shed is not allowed for this user.', extra_tags='alert-danger')
+                return render(request, 'sharecenter/createshed.html', {'form': AddCommunityShedForm()}, status=400)
+
             try:
                 CommunityShed.create(uProfile, address, city, uProfile.zipCode).save()
             except:

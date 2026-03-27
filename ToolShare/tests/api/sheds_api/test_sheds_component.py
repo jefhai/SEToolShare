@@ -18,6 +18,15 @@ class ShedsAPIComponentTests(APITestBase):
         self.assertEqual(response["Location"], "/tooldirectory/")
         self.assertTrue(CommunityShed.objects.filter(owner=self.profile, address="9 Birch Rd").exists())
 
+    def test_NEGATIVE_CREATE_shed_rejects_duplicate_for_same_user(self):
+        self.client.force_login(self.user)
+        payload = {"address": "9 Birch Rd", "city": "Rochester"}
+        first = self.client.post("/sharecenter/createshed/", payload)
+        second = self.client.post("/sharecenter/createshed/", payload)
+        self.assertEqual(first.status_code, 302)
+        self.assertEqual(second.status_code, 400)
+        self.assertEqual(CommunityShed.objects.filter(owner=self.profile, address="9 Birch Rd", city="Rochester").count(), 1)
+
     def test_POSITIVE_READ_shed(self):
         self.client.force_login(self.user)
         self.create_shed(self.profile, address="12 Willow Ave")
@@ -39,4 +48,3 @@ class ShedsAPIComponentTests(APITestBase):
         self.assertFalse(CommunityShed.objects.filter(owner=self.profile).exists())
 
     # TODO: No shed update endpoint exists today; component update coverage is not applicable yet.
-    # TODO: Input validation currently does not prevent creating duplicate sheds per user.
