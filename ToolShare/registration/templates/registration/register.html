@@ -4,9 +4,14 @@
   
 	<form action="/registration/" id="register" class="container " style="max-width: 350px; border-radius: 8px; background-color: #FFFFFF" method="post">{% csrf_token %}
 	<h1 style="text-align: center">Register for an Account</h1>
+		{% if registration_disabled %}
+		<div class="alert alert-warning">
+			Registration is currently disabled. Please check back later.
+		</div>
+		{% endif %}
 		<div class="form-group container">
 				{{form.as_p}}
- 			<button type="submit" class="btn btn-primary btn-block">Create The Account</button>
+	 		<button type="submit" class="btn btn-primary btn-block" {% if registration_disabled %}disabled aria-disabled="true"{% endif %}>Create The Account</button>
 		</div><br>
 	</form>
     <script type="text/javascript">

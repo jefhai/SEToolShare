@@ -135,6 +135,7 @@ MESSAGE_MAX_LENGTH = 1000
 TOOLS_DIRECTORY_PAGE_SIZE = 20
 SHEDS_DIRECTORY_PAGE_SIZE = 20
 USERS_DIRECTORY_PAGE_SIZE = 20
+DISABLE_USER_REGISTRATION = False
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to

@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.test.utils import override_settings
 
 from shareCenter.models import UserProfile
 from tests.api.base import APITestBase
@@ -60,5 +61,19 @@ class RegistrationAPIComponentTests(APITestBase):
         created_user = User.objects.get(username="zipleadingzero")
         created_profile = UserProfile.objects.get(user=created_user)
         self.assertEqual(created_profile.zipCode, "01234")
+
+    @override_settings(DISABLE_USER_REGISTRATION=True)
+    def test_POSITIVE_READ_registration_page_shows_disabled_message_when_registration_off(self):
+        response = self.client.get("/registration/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Registration is currently disabled")
+        self.assertContains(response, "disabled")
+
+    @override_settings(DISABLE_USER_REGISTRATION=True)
+    def test_NEGATIVE_CREATE_registration_returns_400_when_registration_disabled(self):
+        response = self.client.post("/registration/", self._valid_registration_payload())
+        self.assertEqual(response.status_code, 400)
+        self.assertContains(response, "Registration is currently disabled", status_code=400)
+        self.assertFalse(User.objects.filter(username="jamiegardner").exists())
 
     # TODO: Add component tests for email-normalization and username character constraints.

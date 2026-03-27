@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.template import RequestContext, loader
 from django.http import HttpResponseRedirect
+from django.conf import settings
 from django.shortcuts import render
 from shareCenter.models import UserProfile
 from django.contrib.auth.models import User
@@ -9,9 +10,17 @@ from registration.models import RegistrationForm
 
 # Register user method
 def register(request):
+    registration_disabled = getattr(settings, 'DISABLE_USER_REGISTRATION', False)
     if request.user.is_authenticated:
         
         return HttpResponseRedirect('/tooldirectory/') 
+    if request.method == 'POST' and registration_disabled:
+        form = RegistrationForm(request.POST)
+        return render(request, 'registration/register.html', {
+            'form': form,
+            'registration_disabled': True,
+        }, status=400)
+
     if request.method == 'POST': 					# If the form has been submitted...
         form = RegistrationForm(request.POST) 		# A form bound to the POST data
         if form.is_valid(): 						# All validation rules pass
@@ -36,6 +45,9 @@ def register(request):
     else:
         form = RegistrationForm() 					# An unbound form
 
-    return render(request, 'registration/register.html', {'form': form})
+    return render(request, 'registration/register.html', {
+        'form': form,
+        'registration_disabled': registration_disabled,
+    })
     
     
