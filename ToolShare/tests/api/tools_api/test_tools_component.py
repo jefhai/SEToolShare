@@ -86,5 +86,10 @@ class ToolsAPIComponentTests(APITestBase):
         self.assertEqual(response.status_code, 302)
         self.assertFalse(ToolModel.objects.filter(id=self.tool.id).exists())
 
-    # TODO: Input validation currently does not enforce ownership on deleteTool.
+    def test_NEGATIVE_DELETE_tool_non_owner_returns_400_and_preserves_tool(self):
+        self.client.force_login(self.other_user)
+        response = self.client.get(f"/sharecenter/tool/delete/{self.tool.id}/")
+        self.assertEqual(response.status_code, 400)
+        self.assertTrue(ToolModel.objects.filter(id=self.tool.id).exists())
+
     # TODO: Add component tests for search filter combinations in Tool Directory.

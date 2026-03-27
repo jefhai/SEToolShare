@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.template import RequestContext, loader
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.models import User
 from shareCenter.models import ToolModel, UserProfile, AddToolForm, EditToolForm, EditPassword, EditUserInfoForm, AddCommunityShedForm, CommunityShed, ToolSearchForm
@@ -63,10 +63,12 @@ def deleteTool(request, tool_id):
     if not request.user.is_authenticated:
         return HttpResponseRedirect('/login/')
 
+    tool = get_object_or_404(ToolModel, id=tool_id)
+    if tool.owner.user_id != request.user.id and not request.user.is_staff:
+        messages.add_message(request, messages.INFO, 'Only the tool owner can delete this tool.', extra_tags='alert-danger')
+        return HttpResponse('Authorization error: cannot delete tool you do not own.', status=400)
 
-    tool = ToolModel.objects.get(id=tool_id)
-    if request.user.is_authenticated:
-        tool.delete()
+    tool.delete()
 
     return HttpResponseRedirect('/sharecenter/user/' + request.user.username)
 
