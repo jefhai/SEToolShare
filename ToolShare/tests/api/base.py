@@ -1,10 +1,13 @@
 from django.contrib.auth.models import User
 from django.test import TestCase
+from django.test.utils import override_settings
 
 from messageCenter.models import AlertMessage
 from shareCenter.models import CommunityShed, ToolModel, UserProfile
+from tests.test_config import TEST_GLOBAL_CONFIG
 
 
+@override_settings(**TEST_GLOBAL_CONFIG)
 class APITestBase(TestCase):
     def create_user_with_profile(
         self,

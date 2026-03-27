@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block content %}
 <div class="container" style="background-color: #FFFFFF; border-radius: 10px; " >
 
@@ -82,7 +83,17 @@
         </div><!-- /.modal-dialog -->
       </div><!-- /.modal -->
       
-    
-    
+
+
 </div>
+<script type="text/javascript" src="{% static 'js/message-length-counter.js' %}"></script>
+<script type="text/javascript">
+(function() {
+    if (window.ToolShareMessageCounter) {
+        window.ToolShareMessageCounter.attachBySelector("textarea[name='content']", {
+            maxLength: {{ message_max_length }}
+        });
+    }
+})();
+</script>
 {% endblock %}

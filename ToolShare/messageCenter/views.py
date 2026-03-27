@@ -2,12 +2,26 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.template import RequestContext, loader
 from django.http import HttpResponseRedirect
+from django.conf import settings
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.models import User
 from messageCenter.models import AlertMessage, SendMessageForm, MakeRequest, Reservation
 from shareCenter.models import UserProfile, ToolModel, CommunityShed
 from datetime import date
 from django.contrib import messages
+
+
+def _append_with_limit(base_content, extra_content, max_length):
+    if not extra_content:
+        return base_content
+    remaining = max_length - len(base_content)
+    if remaining <= 0:
+        return base_content
+    return base_content + extra_content[:remaining]
+
+
+def _message_max_length():
+    return getattr(settings, 'MESSAGE_MAX_LENGTH', 1000)
 
 
 
@@ -70,16 +84,22 @@ def messageView(request, message_id):
         if form.is_valid():
 
             # creates new message
+            try:
+                AlertMessage.create(currentUser, UserProfile.objects.get(id=msg.sender.id), sub, content, False, 0).save()
+            except ValueError:
+                messages.add_message(request, messages.INFO, 'There was an error sending your message.', extra_tags='alert-danger')
+                return render(request, 'messageCenter/viewMessage.html', {'msg': msg, 'form': SendMessageForm(), 'formError': False,
+                                                                          'doesConflict': doesConflict}, status=400)
             messages.add_message(request, messages.INFO, 'Reply Sent.', extra_tags='alert-success')
-            AlertMessage.create(currentUser, UserProfile.objects.get(id=msg.sender.id), sub, content, False, 0).save()
         
             if AlertMessage.objects.get(id=message_id).subject != "Request":
                 return HttpResponseRedirect('/messagecenter/message/' + message_id)
       
             return HttpResponseRedirect('/messagecenter/delete/' + str(msg.id))     # Redirect after POST
 
-        return render(request, 'messageCenter/viewMessage.html', {'msg': msg, 'form': form, 'formError': True,
-                                                                  'doesConflict': doesConflict})
+        messages.add_message(request, messages.INFO, 'There was an error sending your message.', extra_tags='alert-danger')
+        return render(request, 'messageCenter/viewMessage.html', {'msg': msg, 'form': SendMessageForm(), 'formError': False,
+                                                                  'doesConflict': doesConflict}, status=400)
 
     else:   # Message is being read, not replied to
 
@@ -132,6 +152,12 @@ def sendMessage(request, user_id):
         currentUser = UserProfile.objects.get(user_id=request.user.id)
     if request.method == 'POST':                 # If the form has been submitted...
         form = SendMessageForm(request.POST)         # A form bound to the POST data
+        raw_content = request.POST.get('content', '')
+        if len(raw_content) > _message_max_length():
+            messages.add_message(request, messages.INFO, 'There was an error sending your message.', extra_tags='alert-danger')
+            return render(request, 'messageCenter/sendMessage.html', {
+                'form': SendMessageForm(), 'user_id': user_id, 'receiver': User.objects.get(id=user_id)
+            }, status=400)
         if form.is_valid():                     # All validation rules pass
             content = form.cleaned_data['content']
             
@@ -142,6 +168,10 @@ def sendMessage(request, user_id):
                 return HttpResponseRedirect('ERROR')
             messages.add_message(request, messages.INFO, 'Message Sent.', extra_tags='alert-success')
             return HttpResponseRedirect('/tooldirectory/')     # Redirect after POST
+        messages.add_message(request, messages.INFO, 'There was an error sending your message.', extra_tags='alert-danger')
+        return render(request, 'messageCenter/sendMessage.html', {
+            'form': SendMessageForm(), 'user_id': user_id, 'receiver': User.objects.get(id=user_id)
+        }, status=400)
     else:
         form = SendMessageForm()                     # An unbound form
     
@@ -166,6 +196,12 @@ def sendToolRequest(request, toolId):
         
     if request.method == 'POST':                 # If the form has been submitted...
         form = MakeRequest(request.POST)         # A form bound to the POST data
+        raw_message = request.POST.get('message', '')
+        if len(raw_message) > _message_max_length():
+            messages.add_message(request, messages.INFO, 'There was an error sending your request message.', extra_tags='alert-danger')
+            return render(request, 'messageCenter/sendRequest.html', {
+                'form': MakeRequest(), 'toolId': toolId, 'conflict': False, 'curRes': curRes, 'tool': ToolModel.objects.get(id=toolId)
+            }, status=400)
         if form.is_valid():                     # All validation rules pass
             startDate = form.cleaned_data['startDate']
             endDate = form.cleaned_data['endDate']
@@ -197,15 +233,23 @@ def sendToolRequest(request, toolId):
               
             
             if currTool.inShed():
-                Reservation.create(currTool, currentUser, startDate, endDate).save()
-                content = User.objects.get(id=currentUser.user_id).username + " is borrowing "\
+                base_content = User.objects.get(id=currentUser.user_id).username + " is borrowing "\
                  + ToolModel.objects.get(id=toolId).name + "  from your shed from " + startDate.strftime("%m/%d/%y") \
-                 + " to " + endDate.strftime("%m/%d/%y") + ".\n" + message
-                
+                 + " to " + endDate.strftime("%m/%d/%y") + "."
+                content = _append_with_limit(base_content, "\n" + message, _message_max_length())
+                 
                 shed = CommunityShed.objects.get(id=currTool.location_id)
+                try:
+                    AlertMessage.create(currentUser, UserProfile.objects.get(id=shed.owner_id), "Message", content, False, toolId, startDate, endDate).save()
+                except ValueError:
+                    messages.add_message(request, messages.INFO, 'There was an error sending your request message.', extra_tags='alert-danger')
+                    return render(request, 'messageCenter/sendRequest.html', {
+                        'form': MakeRequest(), 'toolId': toolId, 'conflict': False, 'curRes': curRes, 'tool': ToolModel.objects.get(id=toolId)
+                    }, status=400)
+
+                Reservation.create(currTool, currentUser, startDate, endDate).save()
                 messages.add_message(request, messages.INFO, 'Your reservation has been created.', extra_tags='alert-success')
-                AlertMessage.create(currentUser, UserProfile.objects.get(id=shed.owner_id), "Message", content, False, toolId, startDate, endDate).save()
-                
+                 
                 currentUser.timesBorrowed += 1
                 currentUser.save()
         
@@ -215,17 +259,31 @@ def sendToolRequest(request, toolId):
                 return HttpResponseRedirect('/tooldirectory/')
                 
             if not currTool.inShed():
-                content = (User.objects.get(id=currentUser.user_id).username) + " has requested to borrow your "\
-                    + ToolModel.objects.get(id=toolId).name + " from " + startDate.strftime("%m/%d/%y") + " to " + endDate.strftime("%m/%d/%y") + ".\n" + message
+                base_content = (User.objects.get(id=currentUser.user_id).username) + " has requested to borrow your "\
+                    + ToolModel.objects.get(id=toolId).name + " from " + startDate.strftime("%m/%d/%y") + " to " + endDate.strftime("%m/%d/%y") + "."
+                content = _append_with_limit(base_content, "\n" + message, _message_max_length())
+
+                try:
+                    AlertMessage.create(currentUser, UserProfile.objects.get(id=currTool.owner_id), "Request", content, True, toolId, startDate, endDate).save()
+                except ValueError:
+                    messages.add_message(request, messages.INFO, 'There was an error sending your request message.', extra_tags='alert-danger')
+                    return render(request, 'messageCenter/sendRequest.html', {
+                        'form': MakeRequest(), 'toolId': toolId, 'conflict': False, 'curRes': curRes, 'tool': ToolModel.objects.get(id=toolId)
+                    }, status=400)
 
                 messages.add_message(request, messages.INFO, 'Your request has been sent.', extra_tags='alert-success')
-                AlertMessage.create(currentUser, UserProfile.objects.get(id=currTool.owner_id), "Request", content, True, toolId, startDate, endDate).save()
 
-                
+                 
                 return HttpResponseRedirect('/tooldirectory/')     # Redirect after POST
     else:
         form = MakeRequest()                     # An unbound form
         
+    if request.method == 'POST':
+        messages.add_message(request, messages.INFO, 'There was an error sending your request message.', extra_tags='alert-danger')
+        return render(request, 'messageCenter/sendRequest.html', {
+            'form': MakeRequest(), 'toolId': toolId, 'conflict': False, 'curRes': curRes, 'tool': ToolModel.objects.get(id=toolId)
+        }, status=400)
+
     return render(request, 'messageCenter/sendRequest.html', {
         'form': form, 'toolId': toolId, 'conflict': False, 'curRes':curRes, 'tool': ToolModel.objects.get(id=toolId)
     })

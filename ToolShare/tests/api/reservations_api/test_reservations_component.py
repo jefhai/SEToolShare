@@ -1,7 +1,9 @@
 from datetime import date, timedelta
 
+from messageCenter.models import AlertMessage
 from messageCenter.models import Reservation
 from tests.api.base import APITestBase
+from tests.test_config import TEST_MESSAGE_MAX_LENGTH
 
 
 class ReservationsAPIComponentTests(APITestBase):
@@ -94,6 +96,51 @@ class ReservationsAPIComponentTests(APITestBase):
         response = self.client.get("/messagecenter/reservations/delete/999999/")
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response["Location"], "/messagecenter/reservations")
+
+    def test_POSITIVE_CREATE_send_request_allows_1000_char_message_after_envelope_merge(self):
+        self.client.force_login(self.borrower_user)
+        start_date = date.today() + timedelta(days=1)
+        end_date = start_date + timedelta(days=1)
+        boundary_message = "x" * TEST_MESSAGE_MAX_LENGTH
+        response = self.client.post(
+            f"/messagecenter/sendrequest/{self.tool.id}/",
+            {
+                "startDate": start_date.isoformat(),
+                "endDate": end_date.isoformat(),
+                "message": boundary_message,
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "/tooldirectory/")
+        self.assertTrue(
+            AlertMessage.objects.filter(
+                sender=self.borrower_profile,
+                receiver=self.owner_profile,
+                toolId=self.tool.id,
+            ).exists()
+        )
+        self.assertTrue(
+            Reservation.objects.filter(
+                tool=self.tool,
+                borrower=self.borrower_profile,
+                startDate=start_date,
+                endDate=end_date,
+            ).exists()
+        )
+
+    def test_NEGATIVE_CREATE_send_request_rejects_raw_message_over_1000(self):
+        self.client.force_login(self.borrower_user)
+        start_date = date.today() + timedelta(days=1)
+        end_date = start_date + timedelta(days=1)
+        response = self.client.post(
+            f"/messagecenter/sendrequest/{self.tool.id}/",
+            {
+                "startDate": start_date.isoformat(),
+                "endDate": end_date.isoformat(),
+                "message": "z" * (TEST_MESSAGE_MAX_LENGTH + 1),
+            },
+        )
+        self.assertEqual(response.status_code, 400)
 
     # TODO: Input validation currently does not enforce reservation ownership on update/delete endpoints.
     # TODO: Add component tests for request-approval lifecycle in approveRequest endpoint.

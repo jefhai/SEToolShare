@@ -1,6 +1,7 @@
 from django.template import RequestContext, loader
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
+from django.conf import settings
 from django.contrib.auth.models import User
 from messageCenter.models import AlertMessage, SendMessageForm
 from shareCenter.models import UserProfile, ToolModel
@@ -14,5 +15,6 @@ def numUnread(request):
         hasShed = False
         msgAmount=0
     return {
-        'msgAmount' : msgAmount, 'userHasShed' : hasShed 
+        'msgAmount' : msgAmount, 'userHasShed' : hasShed,
+        'message_max_length': getattr(settings, 'MESSAGE_MAX_LENGTH', 1000),
     }

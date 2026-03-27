@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block content %}
 
@@ -14,6 +15,16 @@
         <h1 style="text-align: center">You must be logged in to submit this form</h1>
     {% endif %}
 
-    <script type="text/javascript">document.forms.sendmessage.id_content.focus();</script>
+    <script type="text/javascript" src="{% static 'js/message-length-counter.js' %}"></script>
+    <script type="text/javascript">
+    (function() {
+        if (window.ToolShareMessageCounter) {
+            window.ToolShareMessageCounter.attach(document.getElementById("id_content"), {
+                maxLength: {{ message_max_length }},
+                focus: true
+            });
+        }
+    })();
+    </script>
     
 {% endblock %}

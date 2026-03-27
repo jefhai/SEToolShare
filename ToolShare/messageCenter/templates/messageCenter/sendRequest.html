@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block content %}
 
@@ -63,5 +64,15 @@
       	</div>
 	</div>
         </div>
-    
+
+<script type="text/javascript" src="{% static 'js/message-length-counter.js' %}"></script>
+<script type="text/javascript">
+(function() {
+    if (window.ToolShareMessageCounter) {
+        window.ToolShareMessageCounter.attach(document.getElementById("id_message"), {
+            maxLength: {{ message_max_length }}
+        });
+    }
+})();
+</script>
 {% endblock %}
