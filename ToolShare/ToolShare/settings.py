@@ -132,6 +132,7 @@ INSTALLED_APPS = (
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MESSAGE_MAX_LENGTH = 1000
+TOOLS_DIRECTORY_PAGE_SIZE = 20
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to

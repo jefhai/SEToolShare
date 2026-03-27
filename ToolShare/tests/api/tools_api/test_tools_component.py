@@ -1,5 +1,6 @@
 from shareCenter.models import ToolModel
 from tests.api.base import APITestBase
+from tests.test_config import TEST_TOOLS_DIRECTORY_PAGE_SIZE
 
 
 class ToolsAPIComponentTests(APITestBase):
@@ -40,6 +41,21 @@ class ToolsAPIComponentTests(APITestBase):
         self.client.force_login(self.owner_user)
         response = self.client.get("/tooldirectory/")
         self.assertEqual(response.status_code, 200)
+
+    def test_POSITIVE_READ_tool_directory_supports_pagination(self):
+        self.client.force_login(self.owner_user)
+        for i in range(TEST_TOOLS_DIRECTORY_PAGE_SIZE + 5):
+            self.create_tool(self.owner_profile, name=f"Paginated Tool {i:02d}")
+
+        first_page = self.client.get("/tooldirectory/")
+        second_page = self.client.get("/tooldirectory/?page=2")
+
+        self.assertEqual(first_page.status_code, 200)
+        self.assertEqual(second_page.status_code, 200)
+        self.assertContains(first_page, "Page 1 of 2")
+        self.assertContains(second_page, "Page 2 of 2")
+        self.assertNotContains(first_page, "Hammer")
+        self.assertContains(second_page, "Hammer")
 
     def test_POSITIVE_READ_tool_detail(self):
         self.client.force_login(self.owner_user)

@@ -3,6 +3,8 @@ from django.contrib.auth.forms import UserCreationForm
 from django.template import RequestContext, loader
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, get_object_or_404
+from django.core.paginator import Paginator
+from django.conf import settings
 from django.contrib.auth.models import User
 from shareCenter.models import ToolModel, UserProfile, AddToolForm, EditToolForm, EditPassword, EditUserInfoForm, AddCommunityShedForm, CommunityShed, ToolSearchForm
 from messageCenter.models import Reservation, AlertMessage
@@ -77,6 +79,7 @@ def deleteTool(request, tool_id):
 # Add tool directory method    
 def toolDirectory(request):
     filtered = False
+    page_size = getattr(settings, 'TOOLS_DIRECTORY_PAGE_SIZE', 20)
     if not request.user.is_authenticated:
         return HttpResponseRedirect('/login/')
     possibleLocations = [(-1, 'All'), (0, 'Home')]
@@ -101,9 +104,10 @@ def toolDirectory(request):
         zipCode = currentUser.zipCode
         alltools = ToolModel.objects.filter(owner_id__zipCode=currentUser.zipCode).order_by('-id')
 
-    if request.method == 'POST':
-        form = ToolSearchForm(possibleLocations, request.POST)
-        if form.is_valid():                     # All validation rules pass
+    request_params = request.GET
+    if request_params:
+        form = ToolSearchForm(possibleLocations, request_params)
+        if form.is_valid():
 
             searchTerms = form.cleaned_data['searchTerms']
             filter = form.cleaned_data['filter']
@@ -135,9 +139,24 @@ def toolDirectory(request):
     else:
         form = ToolSearchForm(possibleLocations)
 
+    paginator = Paginator(alltools, page_size)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    query_params = request.GET.copy()
+    if 'page' in query_params:
+        query_params.pop('page')
+    pagination_query = query_params.urlencode()
+
     return render(request, 'shareCenter/tooldirectory.html', {
-        'alltools': alltools, 'zipCode': zipCode, 'numTools': len(alltools), 'hasShed': currentUser.hasShed(),
-        'form': form, 'filtered': filtered})
+        'alltools': page_obj.object_list,
+        'page_obj': page_obj,
+        'zipCode': zipCode,
+        'numTools': paginator.count,
+        'hasShed': currentUser.hasShed(),
+        'form': form,
+        'filtered': filtered,
+        'pagination_query': pagination_query,
+    })
 
 #************************************************************************************ 
 

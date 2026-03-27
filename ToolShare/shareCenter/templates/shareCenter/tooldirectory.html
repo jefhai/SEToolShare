@@ -4,7 +4,7 @@
     
 	 <h1 class="page-header" style="text-align: center;">Tool Directory - ZIP Code: {{ zipCode }}</h1>
 	 <div class="container" style="background-color: #FFFFFF; border-radius: 10px; padding: 0px; margin-bottom: -20px">
-     <form class="form-inline pull-left" role='form' action="/tooldirectory/" method="post">{% csrf_token %}
+     <form class="form-inline pull-left" role='form' action="/tooldirectory/" method="get">
         {% for field in form %}
             <div class="form-group">
                 
@@ -63,6 +63,25 @@
 	</tbody>
 	
 	</table>
+	{% if page_obj and page_obj.paginator.num_pages > 1 %}
+	<nav style="text-align: center; margin-bottom: 15px;">
+	  <ul class="pagination" style="margin: 0;">
+	    {% if page_obj.has_previous %}
+	      <li><a href="?{% if pagination_query %}{{ pagination_query }}&{% endif %}page={{ page_obj.previous_page_number }}">&laquo;</a></li>
+	    {% else %}
+	      <li class="disabled"><span>&laquo;</span></li>
+	    {% endif %}
+
+	    <li class="active"><span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+
+	    {% if page_obj.has_next %}
+	      <li><a href="?{% if pagination_query %}{{ pagination_query }}&{% endif %}page={{ page_obj.next_page_number }}">&raquo;</a></li>
+	    {% else %}
+	      <li class="disabled"><span>&raquo;</span></li>
+	    {% endif %}
+	  </ul>
+	</nav>
+	{% endif %}
 	{% if numTools == 0 %}
        <h4 style="text-align: center">No Tools</h4><br>
     {% endif %}  
