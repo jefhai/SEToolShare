@@ -9,7 +9,7 @@ from registration.models import RegistrationForm
 
 # Register user method
 def register(request):
-    if (request.user.is_authenticated()):
+    if request.user.is_authenticated:
         
         return HttpResponseRedirect('/tooldirectory/') 
     if request.method == 'POST': 					# If the form has been submitted...

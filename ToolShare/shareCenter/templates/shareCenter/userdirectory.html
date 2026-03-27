@@ -2,7 +2,7 @@
 {% block content %}
 <div class="container" style="background-color: #FFFFFF; border-radius: 10px; " >
     
-	 <h1 class="page-header" style="text-align: center;">User Directory - ZIP Code: {{ zipCode }}</h1>
+	 <h1 class="page-header" style="text-align: center;">User Directory - ZIP Code: {% if zipCode == 'ADMIN' %}{{ zipCode }}{% else %}{{ zipCode|stringformat:'05d' }}{% endif %}</h1>
 	 <!--<div class="container" style="background-color: #FFFFFF; border-radius: 10px; padding: 0px; margin-bottom: -20px">
 	 <form class="form-inline pull-left" role='form' action="/userdirectory/" method="post">{% csrf_token %}
         {% for field in form %}
@@ -49,7 +49,7 @@
 	</tbody>
 	
 	</table>
-	{% if numUsers = 0 %}
+	{% if numUsers == 0 %}
        <h4 style="text-align: center">No Users</h4><br>
     {% endif %}  
 </div>

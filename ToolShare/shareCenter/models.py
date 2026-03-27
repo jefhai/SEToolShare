@@ -1,14 +1,14 @@
 from django.db import models
 from django import forms
 from django.contrib.auth.models import User
-from django.contrib.localflavor.us.us_states import STATE_CHOICES
+from localflavor.us.us_states import STATE_CHOICES
 from messageCenter.models import Reservation
 from datetime import date
 
 # Creates a new user profile
 class UserProfile(models.Model):
     """Custom User"""
-    user = models.OneToOneField(User)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     zipCode = models.IntegerField()
     sAddress = models.CharField(max_length=30)
     city = models.CharField(max_length=30)
@@ -71,16 +71,17 @@ class ToolModel(models.Model):
     #Model for a tool object
     name = models.CharField(max_length=30)
     description = models.CharField(max_length=250)
-    owner = models.ForeignKey('UserProfile')
+    owner = models.ForeignKey('UserProfile', on_delete=models.CASCADE)
     pickupInformation = models.CharField(max_length=100)
     available = models.BooleanField()
     timesUsed = models.IntegerField()
-    location = models.ForeignKey('CommunityShed', null=True)
+    location = models.ForeignKey('CommunityShed', null=True, on_delete=models.SET_NULL)
     
     @classmethod
     def create(cls, owner, name, description, pickupInformation, location, available):
         newTool = cls(owner=owner, name=name, description=description, 
-                      pickupInformation=pickupInformation, location=location, available=available, timesUsed = 0)
+                      pickupInformation=pickupInformation, location=location, available=available,
+                      timesUsed=0)
         return newTool
     
     def inShed(self):
@@ -167,7 +168,7 @@ class AddCommunityShedForm(forms.Form):
 
     
 class CommunityShed(models.Model):
-    owner = models.ForeignKey('UserProfile')
+    owner = models.ForeignKey('UserProfile', on_delete=models.CASCADE)
     address = models.CharField(max_length=30)
     city = models.CharField(max_length=30)
     zipcode = models.IntegerField()
@@ -203,4 +204,3 @@ class ToolSearchForm(forms.Form):
 
 
     
-

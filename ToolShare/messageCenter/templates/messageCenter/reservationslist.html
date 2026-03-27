@@ -36,7 +36,7 @@
         </tbody>
 
         </table>
-        {% if past|length = 0 %}
+        {% if past|length == 0 %}
            <h4 style="text-align: center">No Past Reservations</h4><br>
         {% endif %}
 
@@ -67,7 +67,7 @@
         </tbody>
 
         </table>
-        {% if present|length = 0 %}
+        {% if present|length == 0 %}
            <h4 style="text-align: center">No Active Reservations</h4><br>
         {% endif %}
       </div>
@@ -96,7 +96,7 @@
         </tbody>
 
         </table>
-        {% if future|length = 0 %}
+        {% if future|length == 0 %}
            <h4 style="text-align: center">No Scheduled Reservations</h4><br>
         {% endif %}
       </div>

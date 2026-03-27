@@ -1,6 +1,6 @@
 from django.db import models
 from django import forms
-from django.contrib.localflavor.us.us_states import STATE_CHOICES
+from localflavor.us.us_states import STATE_CHOICES
 
 # Creates a new registration form 
 class RegistrationForm(forms.Form):

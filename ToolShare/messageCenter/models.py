@@ -5,8 +5,8 @@ from datetime import datetime
 
 class AlertMessage(models.Model):
     
-    sender = models.ForeignKey('shareCenter.UserProfile', related_name='alertmessage_sender')
-    receiver = models.ForeignKey('shareCenter.UserProfile', related_name='alertmessage_receiver')
+    sender = models.ForeignKey('shareCenter.UserProfile', related_name='alertmessage_sender', on_delete=models.CASCADE)
+    receiver = models.ForeignKey('shareCenter.UserProfile', related_name='alertmessage_receiver', on_delete=models.CASCADE)
     subject = models.CharField(max_length=140)
     content = models.CharField(max_length=500)
     read = models.BooleanField()
@@ -52,8 +52,8 @@ class MakeRequest(forms.Form):
         return self.cleaned_data
     
 class Reservation(models.Model):
-    tool = models.ForeignKey('shareCenter.ToolModel')
-    borrower = models.ForeignKey('shareCenter.UserProfile')
+    tool = models.ForeignKey('shareCenter.ToolModel', on_delete=models.CASCADE)
+    borrower = models.ForeignKey('shareCenter.UserProfile', on_delete=models.CASCADE)
     startDate = models.DateField()
     endDate = models.DateField()
     
@@ -74,4 +74,3 @@ class MsgReply(forms.Form):
     error_css_class = 'alert alert-danger'
     content = forms.CharField(widget=forms.Textarea(attrs={'class':'form-control' }))
 """
-

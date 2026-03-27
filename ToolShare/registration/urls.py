@@ -1,7 +1,8 @@
-from django.conf.urls import patterns, url
+from django.urls import re_path
 from registration import views
 
-urlpatterns = patterns('',
-    # registration URL                     
-    url(r'^$', views.register, name='registration' ),
-)
+app_name = 'registration'
+
+urlpatterns = [
+    re_path(r'^$', views.register, name='registration'),
+]

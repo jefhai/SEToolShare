@@ -1,34 +1,24 @@
-from django.conf.urls import patterns, include, url
-
-# Uncomment the next two lines to enable the admin:
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
+from django.urls import include, path, re_path
+
 admin.autodiscover()
 from login.views import logoutUser, home
 from shareCenter.views import toolDirectory
-from login.views import home
-urlpatterns = patterns('',
-    # Examples:
-    # url(r'^$', 'ToolShare.views.home', name='home'),
-    # url(r'^ToolShare/', include('ToolShare.foo.urls')),
 
-    # Uncomment the admin/doc line below to enable admin documentation:
-    # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
+urlpatterns = [
+    path('registration/', include('registration.urls', namespace='registration')),
+    path('login/', include('login.urls', namespace='login')),
+    path('logout/', logoutUser),
+    path('home/', home),
+    path('sharecenter/', include('shareCenter.urls', namespace='sharecenter')),
+    path('tooldirectory/', toolDirectory),
+    path('messagecenter/', include('messageCenter.urls', namespace='messagecenter')),
+    path('communitystats/', include('communityStats.urls', namespace='communitystats')),
+    path('admin/', admin.site.urls),
+    path('', home),
+]
 
-
-    url(r'^registration/', include('registration.urls', namespace='registration')),
-    url(r'^login/', include('login.urls', namespace='login')),
-    url(r'^logout/', logoutUser),
-    url(r'^home/', home),
-    url(r'^sharecenter/', include('shareCenter.urls', namespace='sharecenter')),
-    url(r'^tooldirectory/', toolDirectory),
-    url(r'^messagecenter/', include('messageCenter.urls', namespace='messagecenter')),
-    url(r'^communitystats/', include('communityStats.urls', namespace='communitystats')),
-    # Uncomment the next line to enable the admin:
-    url(r'^admin/', include(admin.site.urls)),
-    url(r'^$', home),
-    url(r'^static/(?P<path>.*)$', 'django.views.static.serve', {'SITE_ROOT': 'static'}),
-    
-)
-
-from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-urlpatterns += staticfiles_urlpatterns()
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.BASE_DIR / 'static')

@@ -1,9 +1,10 @@
-from django.conf.urls import patterns, url
+from django.urls import re_path
 from login import views
 
-urlpatterns = patterns('',
-    # Login URL 
-    url(r'^$', views.loginUser, name='login' ),
-    url(r'^home', views.home, name='home' ),
-    url(r'^credits', views.credits, name='credits' )
-)
+app_name = 'login'
+
+urlpatterns = [
+    re_path(r'^$', views.loginUser, name='login'),
+    re_path(r'^home/?$', views.home, name='home'),
+    re_path(r'^credits/?$', views.credits, name='credits'),
+]

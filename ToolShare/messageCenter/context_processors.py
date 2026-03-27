@@ -6,7 +6,7 @@ from messageCenter.models import AlertMessage, SendMessageForm
 from shareCenter.models import UserProfile, ToolModel
 
 def numUnread(request):
-    if (request.user.is_authenticated() and not request.user.is_staff):
+    if request.user.is_authenticated and not request.user.is_staff:
         currentUser = UserProfile.objects.get(user_id=request.user.id)
         msgAmount = len(AlertMessage.objects.filter(receiver_id=currentUser.id, ).filter(read=False))
         hasShed = currentUser.hasShed()

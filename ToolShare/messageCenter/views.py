@@ -25,7 +25,7 @@ def messageView(request, message_id):
     msg = AlertMessage.objects.get(id=message_id)   # gets the message to view
     doesConflict = False    # sets initial value of reservation conflict to false
 
-    if not (request.user.is_authenticated()):   # Check if user is logged in properly
+    if not request.user.is_authenticated:   # Check if user is logged in properly
         return HttpResponseRedirect('/login/')  # If not, send them to the logib page
 
 
@@ -106,7 +106,7 @@ def inboxView(request):
     """Lists user's messages
     """
 
-    if not (request.user.is_authenticated()):
+    if not request.user.is_authenticated:
         return HttpResponseRedirect('/login/')
     
     if (request.user.is_staff):
@@ -126,12 +126,12 @@ def inboxView(request):
 def sendMessage(request, user_id):
     """Called to create a new message
     """
-    if not (request.user.is_authenticated()):
+    if not request.user.is_authenticated:
         return HttpResponseRedirect('/login/')
     else:
         currentUser = UserProfile.objects.get(user_id=request.user.id)
     if request.method == 'POST':                 # If the form has been submitted...
-        form = SendMessageForm(request.POST, user_id)         # A form bound to the POST data
+        form = SendMessageForm(request.POST)         # A form bound to the POST data
         if form.is_valid():                     # All validation rules pass
             content = form.cleaned_data['content']
             
@@ -156,7 +156,7 @@ def sendToolRequest(request, toolId):
     """ Called to send a request for a tool
     """
 
-    if not (request.user.is_authenticated()):
+    if not request.user.is_authenticated:
         return HttpResponseRedirect('/login/')
     else:
         currentUser = UserProfile.objects.get(user_id=request.user.id)
@@ -238,7 +238,7 @@ def approveRequest(request, message_id, toolId):
     message=AlertMessage.objects.get(id=message_id)
     sender=message.sender
     currTool=ToolModel.objects.get(id=message.toolId)
-    if not (request.user.is_authenticated()):
+    if not request.user.is_authenticated:
         return HttpResponseRedirect('/login/')
     else:
         existingReservations = Reservation.objects.filter(tool_id=message.toolId)
@@ -276,7 +276,7 @@ def myReservations(request):
     """ View user's past, present, and future reservations
     """
 
-    if not (request.user.is_authenticated()):
+    if not request.user.is_authenticated:
         return HttpResponseRedirect('/login/')
     else:
         currentUser = UserProfile.objects.get(user_id=request.user.id)
@@ -299,7 +299,7 @@ def deleteReservation(request, reservation_id):
     except:
         return HttpResponseRedirect('/messagecenter/reservations')
 
-    if (request.user.is_authenticated()):
+    if request.user.is_authenticated:
         reservation.delete()
         
     return HttpResponseRedirect('/messagecenter/reservations')
@@ -312,7 +312,7 @@ def returnReservation(request, reservation_id):
         reservation = Reservation.objects.get(id=reservation_id)
     except:
         return HttpResponseRedirect('/messagecenter/reservations')
-    if (request.user.is_authenticated()):
+    if request.user.is_authenticated:
         reservation.endDate=date.today()
         reservation.save()
     return HttpResponseRedirect('/messagecenter/reservations')
@@ -327,7 +327,7 @@ def deleteMessage(request, message_id):
         msg = AlertMessage.objects.get(id=message_id)
     except:
         return HttpResponseRedirect('/messagecenter/')
-    if (request.user.is_authenticated()):
+    if request.user.is_authenticated:
         currentUser = UserProfile.objects.get(user_id=request.user.id)
         print(msg.receiver)
         print(request.user.username)

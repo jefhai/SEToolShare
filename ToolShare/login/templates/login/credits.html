@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Credits{% endblock %}
 
@@ -13,10 +14,10 @@
 			<h4 style="text-align: center">Austin Klein - Configuration/QA Coordinator</h4>
     	</div><br>
     	<div class="col-md-6">
-          <img class="featurette-image img-responsive" src="{{STATIC_URL}}img/Monkey.gif" style="border-radius: 15px; margin-bottom: 10px" alt="Generic placeholder image">
+          <img class="featurette-image img-responsive" src="{% static 'img/Monkey.gif' %}" style="border-radius: 15px; margin-bottom: 10px" alt="Generic placeholder image">
         </div>
         <div class="col-md-6">
-          <img class="featurette-image img-responsive pull-right" src="{{STATIC_URL}}img/Stewart.gif" style="border-radius: 15px; margin-bottom: 10px" alt="Generic placeholder image">
+          <img class="featurette-image img-responsive pull-right" src="{% static 'img/Stewart.gif' %}" style="border-radius: 15px; margin-bottom: 10px" alt="Generic placeholder image">
         </div><br>
 	</div>
     <br>

@@ -1,43 +1,20 @@
-from django.conf.urls import patterns, url
+from django.urls import re_path
 from shareCenter import views
 
-urlpatterns = patterns('',
-    # Add tool URL 
-    url(r'^addtool', views.addTool, name='addtool' ),
-        
-    # User directory
-    url(r'^userdirectory', views.userDirectory, name='userdirectory'),
-    
-    # Add tool/toolid URL, used for pass tool id for redirect messages 
-    url(r'^tool/(?P<tool_id>\d+)', views.toolInfo, name='tool'),
-    
-    # User profile URL
-    url(r'^user/(?P<username>\w+)', views.userProfile, name='username'),
-    
-    # Deleting tools
-    url(r'^tool/delete/(?P<tool_id>\d+)', views.deleteTool, name='deletetool'),
-    
-    # editing tools
-    url(r'^tool/edit/(?P<tool_id>\d+)', views.editTool, name='edittool'),
+app_name = 'shareCenter'
 
-    # editing tools
-    url(r'^tool/changestate/(?P<tool_id>\d+)', views.changeToolState, name='changeToolState'),
-
-    #editing user info
-    url(r'^edituser/(?P<username>\w+)', views.editUserInfo, name='edituserinfo'),
-    
-    #editing user info
-    url(r'^editpassword', views.editPassword, name='editpassword'),
-    
-    #create a shed
-    url(r'^createshed', views.createShed, name='createshed'),
-    
-    #view for a shed
-    url(r'^shed/(?P<username>\w+)', views.shed, name='shed'),
-    
-    #shed list
-    url(r'^shedlist', views.shedList, name='shedlist'),
-
-    #Delete Shed
-    url(r'^deleteshed', views.deleteShed, name='deleteshed'),
-)
+urlpatterns = [
+    re_path(r'^addtool/?$', views.addTool, name='addtool'),
+    re_path(r'^userdirectory/?$', views.userDirectory, name='userdirectory'),
+    re_path(r'^tool/(?P<tool_id>\d+)/?$', views.toolInfo, name='tool'),
+    re_path(r'^user/(?P<username>\w+)/?$', views.userProfile, name='username'),
+    re_path(r'^tool/delete/(?P<tool_id>\d+)/?$', views.deleteTool, name='deletetool'),
+    re_path(r'^tool/edit/(?P<tool_id>\d+)/?$', views.editTool, name='edittool'),
+    re_path(r'^tool/changestate/(?P<tool_id>\d+)/?$', views.changeToolState, name='changeToolState'),
+    re_path(r'^edituser/(?P<username>\w+)/?$', views.editUserInfo, name='edituserinfo'),
+    re_path(r'^editpassword/?$', views.editPassword, name='editpassword'),
+    re_path(r'^createshed/?$', views.createShed, name='createshed'),
+    re_path(r'^shed/(?P<username>\w+)/?$', views.shed, name='shed'),
+    re_path(r'^shedlist/?$', views.shedList, name='shedlist'),
+    re_path(r'^deleteshed/?$', views.deleteShed, name='deleteshed'),
+]

@@ -14,7 +14,7 @@
 			<div class="panel panel-default">
   				<div class="panel-heading"><b>Address</b></div>
   					<div class="panel-body">
-    				{{sAddress}} {{city}}, {{state}} {{zipCode}}
+					{{sAddress}} {{city}}, {{state}} {{zipCode|stringformat:'05d'}}
   				</div>
 			</div>
 			<div class="panel panel-default">
@@ -65,7 +65,7 @@
 				{% endfor %}	
 			</tbody>
 			</table>
-			{% if numTools = 0 %}
+			{% if numTools == 0 %}
                 <h4 style="text-align: center">No Tools</h4>
             {% endif %}  
 	    </div>

@@ -12,7 +12,7 @@ from django.utils import formats
 
 # Add tool method
 def addTool(request):
-    if not (request.user.is_authenticated()):
+    if not request.user.is_authenticated:
         return HttpResponseRedirect('/login/')
 
 
@@ -60,12 +60,12 @@ def addTool(request):
 #************************************************************************************
 
 def deleteTool(request, tool_id):
-    if not (request.user.is_authenticated()):
+    if not request.user.is_authenticated:
         return HttpResponseRedirect('/login/')
 
 
     tool = ToolModel.objects.get(id=tool_id)
-    if (request.user.is_authenticated()):
+    if request.user.is_authenticated:
         tool.delete()
 
     return HttpResponseRedirect('/sharecenter/user/' + request.user.username)
@@ -75,7 +75,7 @@ def deleteTool(request, tool_id):
 # Add tool directory method    
 def toolDirectory(request):
     filtered = False
-    if not (request.user.is_authenticated()):
+    if not request.user.is_authenticated:
         return HttpResponseRedirect('/login/')
     possibleLocations = [(-1, 'All'), (0, 'Home')]
 
@@ -97,7 +97,7 @@ def toolDirectory(request):
     else:
         communityMembers = UserProfile.objects.filter(zipCode=currentUser.zipCode)
         zipCode = currentUser.zipCode
-        alltools = ToolModel.objects.filter(owner_id__zipCode=currentUser.zipCode).order_by('id')
+        alltools = ToolModel.objects.filter(owner_id__zipCode=currentUser.zipCode).order_by('-id')
 
     if request.method == 'POST':
         form = ToolSearchForm(possibleLocations, request.POST)
@@ -118,7 +118,7 @@ def toolDirectory(request):
                 alltools = alltools.filter(location_id=location)
 
             if filter == 'DA':
-                pass
+                alltools = alltools.order_by('-id')
             elif filter == 'NA':
                 filtered = True
                 alltools = alltools.order_by('name')
@@ -141,7 +141,7 @@ def toolDirectory(request):
 
 # Add tool info method 
 def toolInfo(request, tool_id):
-    if not (request.user.is_authenticated()):
+    if not request.user.is_authenticated:
         return HttpResponseRedirect('/login/')
 
     tool = get_object_or_404(ToolModel, pk=tool_id)
@@ -167,16 +167,16 @@ def toolInfo(request, tool_id):
     # Data for Google Maps Directions/Info Page
     userAddress = UserProfile.objects.get(user_id=request.user.id).sAddress + ", " + UserProfile.objects.get(
         user_id=request.user.id).city + ", " + UserProfile.objects.get(user_id=request.user.id).state
+    ownerAddress = ""
+    wellFormatedAddress = ""
     if not request.user.is_staff:
         if tool.inShed():
             ownerAddress = toolLocation.address + ", " + toolLocation.city + ", " + owner.state
             wellFormatedAddress = toolLocation.address + "\n" + toolLocation.city + ", " + owner.state + " " + str(
-                owner.zipCode)
+                owner.zipCode).zfill(5)
         else:
             ownerAddress = owner.sAddress + ", " + owner.city + ", " + owner.state
-            wellFormatedAddress = owner.sAddress + "\n" + owner.city + ", " + owner.state + " " + str(owner.zipCode)
-    else:
-        ownerAddress = ""
+            wellFormatedAddress = owner.sAddress + "\n" + owner.city + ", " + owner.state + " " + str(owner.zipCode).zfill(5)
 
     return render(request, 'sharecenter/toolinfo.html', {
         'tName': tName, 'tDesc': tDesc, 'ownerEmail': ownerEmail,
@@ -188,7 +188,7 @@ def toolInfo(request, tool_id):
 
 #User Profile Page    
 def userProfile(request, username):
-    if not (request.user.is_authenticated()):
+    if not request.user.is_authenticated:
         return HttpResponseRedirect('/login/')
 
     user = get_object_or_404(User, username=username)
@@ -218,7 +218,7 @@ def userProfile(request, username):
 #************************************************************************************  
 
 def createShed(request):
-    if not (request.user.is_authenticated()):
+    if not request.user.is_authenticated:
         return HttpResponseRedirect('/login/')
 
     uProfile = UserProfile.objects.get(user_id=request.user.id)
@@ -242,7 +242,7 @@ def createShed(request):
 #************************************************************************************
 
 def manageShed(request):
-    if not (request.user.is_authenticated()):
+    if not request.user.is_authenticated:
         return HttpResponseRedirect('/login/')
 
     # Checks if use has a shed
@@ -262,7 +262,7 @@ def manageShed(request):
 #************************************************************************************   
 
 def shed(request, username):
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         return HttpResponseRedirect('/login/')
 
     user = get_object_or_404(User, username=username)
@@ -284,7 +284,7 @@ def shed(request, username):
 #************************************************************************************    
 
 def shedList(request):
-    if not (request.user.is_authenticated()):
+    if not request.user.is_authenticated:
         return HttpResponseRedirect('/login/')
 
     if (request.user.is_staff):
@@ -301,7 +301,7 @@ def shedList(request):
 #************************************************************************************    
 
 def editTool(request, tool_id):
-    if not (request.user.is_authenticated()):
+    if not request.user.is_authenticated:
         return HttpResponseRedirect('/login/')
 
 
@@ -361,7 +361,7 @@ def editTool(request, tool_id):
 #************************************************************************************
 
 def editUserInfo(request, username):
-    if not (request.user.is_authenticated()):
+    if not request.user.is_authenticated:
         return HttpResponseRedirect('/login/')
 
 
@@ -422,7 +422,7 @@ def changeZipCode(request):
 #************************************************************************************
 
 def editPassword(request):
-    if not (request.user.is_authenticated()):
+    if not request.user.is_authenticated:
         return HttpResponseRedirect('/login/')
 
 
@@ -452,7 +452,7 @@ def editPassword(request):
     #************************************************************************************
 
 def userDirectory(request):
-    if not (request.user.is_authenticated()):
+    if not request.user.is_authenticated:
         return HttpResponseRedirect('/login/')
     currentUser = UserProfile.objects.get(user_id=request.user.id)
 
@@ -473,7 +473,7 @@ def userDirectory(request):
 #************************************************************************************
 
 def changeToolState(request, tool_id):
-    if not (request.user.is_authenticated()):
+    if not request.user.is_authenticated:
         return HttpResponseRedirect('/login/')
 
     if len(ToolModel.objects.filter(id=tool_id)) == 0:

@@ -17,7 +17,7 @@ def logoutUser(request):
 # Login user method
 def loginUser(request):
     # Checks if user is already logged in
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         return HttpResponseRedirect("/tooldirectory/")  # Redirect to a tool directory page.
     form = loginForm(request.POST or None)
     # Logs in user and sends user to a page redirect
