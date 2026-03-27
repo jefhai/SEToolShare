@@ -1,5 +1,6 @@
 from shareCenter.models import CommunityShed
 from tests.api.base import APITestBase
+from tests.test_config import TEST_SHEDS_DIRECTORY_PAGE_SIZE
 
 
 class ShedsAPIComponentTests(APITestBase):
@@ -38,6 +39,24 @@ class ShedsAPIComponentTests(APITestBase):
         self.create_shed(self.profile, address="21 Cedar St")
         response = self.client.get("/sharecenter/shedlist/")
         self.assertEqual(response.status_code, 200)
+
+    def test_POSITIVE_READ_shed_list_supports_pagination(self):
+        self.client.force_login(self.user)
+        for i in range(TEST_SHEDS_DIRECTORY_PAGE_SIZE + 5):
+            neighbor_profile = self.create_user_with_profile(
+                f"shedowner{i:02d}",
+                first_name=f"Owner{i:02d}",
+                last_name="Shed",
+                zip_code=self.profile.zipCode,
+            )[1]
+            self.create_shed(neighbor_profile, address=f"{300 + i} Paginated Ave")
+
+        first_page = self.client.get("/sharecenter/shedlist/")
+        second_page = self.client.get("/sharecenter/shedlist/?page=2")
+        self.assertEqual(first_page.status_code, 200)
+        self.assertEqual(second_page.status_code, 200)
+        self.assertContains(first_page, "Page 1 of 2")
+        self.assertContains(second_page, "Page 2 of 2")
 
     def test_POSITIVE_DELETE_shed(self):
         self.client.force_login(self.user)

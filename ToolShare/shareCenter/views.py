@@ -314,21 +314,30 @@ def shed(request, username):
 #************************************************************************************    
 
 def shedList(request):
+    page_size = getattr(settings, 'SHEDS_DIRECTORY_PAGE_SIZE', 20)
     if not request.user.is_authenticated:
         return HttpResponseRedirect('/login/')
 
     if (request.user.is_staff):
         zipCode = 'ADMIN'
-        sheds = CommunityShed.objects.all()
+        sheds = CommunityShed.objects.all().order_by('-id')
         hasShed = False
     else:
         currentUser = UserProfile.objects.get(user_id=request.user.id)
-        sheds = CommunityShed.objects.filter(zipcode=currentUser.zipCode)
+        sheds = CommunityShed.objects.filter(zipcode=currentUser.zipCode).order_by('-id')
         zipCode = currentUser.zipCode
         hasShed = currentUser.hasShed()
 
+    paginator = Paginator(sheds, page_size)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
     return render(request, 'sharecenter/shedlist.html', {
-        'sheds': sheds, 'zipCode': zipCode, 'numSheds': len(sheds), 'hasShed': hasShed})
+        'sheds': page_obj.object_list,
+        'page_obj': page_obj,
+        'zipCode': zipCode,
+        'numSheds': paginator.count,
+        'hasShed': hasShed,
+    })
 
 #************************************************************************************    
 
