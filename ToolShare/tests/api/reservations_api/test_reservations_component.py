@@ -142,5 +142,134 @@ class ReservationsAPIComponentTests(APITestBase):
         )
         self.assertEqual(response.status_code, 400)
 
+    def test_POSITIVE_UPDATE_approve_request_creates_reservation_and_approval_message(self):
+        start_date = date.today() + timedelta(days=3)
+        end_date = start_date + timedelta(days=2)
+        request_message = AlertMessage.create(
+            self.borrower_profile,
+            self.owner_profile,
+            "Request",
+            "Could I borrow this tool for a project?",
+            True,
+            self.tool.id,
+            start_date,
+            end_date,
+        )
+        request_message.save()
+
+        before_borrowed = self.borrower_profile.timesBorrowed
+        before_lent = self.owner_profile.timesLent
+        before_tool_used = self.tool.timesUsed
+
+        self.client.force_login(self.owner_user)
+        response = self.client.get(f"/messagecenter/approverequest/{request_message.id}/{self.tool.id}/")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], f"/messagecenter/delete/{request_message.id}")
+
+        self.assertTrue(
+            Reservation.objects.filter(
+                tool=self.tool,
+                borrower=self.borrower_profile,
+                startDate=start_date,
+                endDate=end_date,
+            ).exists()
+        )
+        self.assertTrue(
+            AlertMessage.objects.filter(
+                sender=self.owner_profile,
+                receiver=self.borrower_profile,
+                subject="Request Approved",
+            ).exists()
+        )
+
+        self.borrower_profile.refresh_from_db()
+        self.owner_profile.refresh_from_db()
+        self.tool.refresh_from_db()
+        self.assertEqual(self.borrower_profile.timesBorrowed, before_borrowed + 1)
+        self.assertEqual(self.owner_profile.timesLent, before_lent + 1)
+        self.assertEqual(self.tool.timesUsed, before_tool_used + 1)
+
+    def test_NEGATIVE_UPDATE_approve_request_with_conflict_redirects_without_side_effects(self):
+        start_date = date.today() + timedelta(days=5)
+        end_date = start_date + timedelta(days=2)
+        existing = Reservation.create(
+            self.tool,
+            self.borrower_profile,
+            start_date,
+            end_date,
+        )
+        existing.save()
+
+        other_user, other_profile = self.create_user_with_profile(
+            "requester2",
+            first_name="Second",
+            last_name="Requester",
+            zip_code=self.owner_profile.zipCode,
+        )
+        request_message = AlertMessage.create(
+            other_profile,
+            self.owner_profile,
+            "Request",
+            "Conflicting request",
+            True,
+            self.tool.id,
+            start_date,
+            end_date,
+        )
+        request_message.save()
+
+        before_res_count = Reservation.objects.count()
+        self.client.force_login(self.owner_user)
+        response = self.client.get(f"/messagecenter/approverequest/{request_message.id}/{self.tool.id}/")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "/messagecenter/")
+        self.assertEqual(Reservation.objects.count(), before_res_count)
+        self.assertFalse(
+            AlertMessage.objects.filter(
+                sender=self.owner_profile,
+                receiver=other_profile,
+                subject="Request Approved",
+            ).exists()
+        )
+        _ = other_user
+
+    def test_NEGATIVE_UPDATE_approve_request_with_missing_tool_redirects_error(self):
+        start_date = date.today() + timedelta(days=6)
+        end_date = start_date + timedelta(days=1)
+        request_message = AlertMessage.create(
+            self.borrower_profile,
+            self.owner_profile,
+            "Request",
+            "Request with bad tool route",
+            True,
+            self.tool.id,
+            start_date,
+            end_date,
+        )
+        request_message.save()
+
+        self.client.force_login(self.owner_user)
+        response = self.client.get(f"/messagecenter/approverequest/{request_message.id}/999999/")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "ERROR")
+
+    def test_NEGATIVE_UPDATE_approve_request_requires_authentication(self):
+        start_date = date.today() + timedelta(days=4)
+        end_date = start_date + timedelta(days=2)
+        request_message = AlertMessage.create(
+            self.borrower_profile,
+            self.owner_profile,
+            "Request",
+            "Please approve this request",
+            True,
+            self.tool.id,
+            start_date,
+            end_date,
+        )
+        request_message.save()
+
+        response = self.client.get(f"/messagecenter/approverequest/{request_message.id}/{self.tool.id}/")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "/login/")
+
     # TODO: Input validation currently does not enforce reservation ownership on update/delete endpoints.
-    # TODO: Add component tests for request-approval lifecycle in approveRequest endpoint.

@@ -305,11 +305,15 @@ def approveRequest(request, message_id, toolId):
                 if not ((message.startDate < r.startDate and message.endDate < r.startDate) or (message.startDate >= r.endDate and message.endDate > r.endDate)):
                         return HttpResponseRedirect('/messagecenter/')
         
-    content = (User.objects.get(id=currentUser.user_id).username) + " has approved of your request to borrow " + ToolModel.objects.get(id=toolId).name\
+    try:
+        t = ToolModel.objects.get(id=toolId)
+    except ToolModel.DoesNotExist:
+        return HttpResponseRedirect('ERROR')
+
+    content = (User.objects.get(id=currentUser.user_id).username) + " has approved of your request to borrow " + t.name\
          + " from " + message.startDate.strftime("%m/%d/%y") + " to " + message.endDate.strftime("%m/%d/%y") + '.'
 
     try:
-        t = ToolModel.objects.get(id=toolId)
         #t.available = False
         #t.save()
         
