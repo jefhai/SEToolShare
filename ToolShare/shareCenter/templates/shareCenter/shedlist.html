@@ -2,7 +2,7 @@
 {% block content %}
 <div class="container" style="background-color: #FFFFFF; border-radius: 10px; " >
 
-	 <h1 class="page-header" style="text-align: center">Shed Directory - ZIP Code: {% if zipCode == 'ADMIN' %}{{ zipCode }}{% else %}{{ zipCode|stringformat:'05d' }}{% endif %}
+	 <h1 class="page-header" style="text-align: center">Shed Directory - ZIP Code: {{ zipCode }}
 	 {% if not hasShed %}
 	 <a type='button' class='btn btn-primary pull-right' href="/sharecenter/createshed" style="margin-right: 10px;">Create A Shed</a>
 	 {% endif %}

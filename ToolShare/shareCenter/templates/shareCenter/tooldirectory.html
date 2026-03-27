@@ -2,7 +2,7 @@
 {% block content %}
 <div class="container" style="background-color: #FFFFFF; border-radius: 10px; " >
     
-	 <h1 class="page-header" style="text-align: center;">Tool Directory - ZIP Code: {% if zipCode == 'ADMIN' %}{{ zipCode }}{% else %}{{ zipCode|stringformat:'05d' }}{% endif %}</h1>
+	 <h1 class="page-header" style="text-align: center;">Tool Directory - ZIP Code: {{ zipCode }}</h1>
 	 <div class="container" style="background-color: #FFFFFF; border-radius: 10px; padding: 0px; margin-bottom: -20px">
      <form class="form-inline pull-left" role='form' action="/tooldirectory/" method="post">{% csrf_token %}
         {% for field in form %}

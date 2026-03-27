@@ -40,5 +40,25 @@ class RegistrationAPIComponentTests(APITestBase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response["Location"], "#ERROR")
 
-    # TODO: Input validation currently does not enforce a strict 5-digit numeric zipcode.
+    def test_NEGATIVE_CREATE_registration_rejects_non_numeric_zipcode(self):
+        payload = self._valid_registration_payload(zipcode="14A2B")
+        response = self.client.post("/registration/", payload)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(User.objects.filter(username="jamiegardner").exists())
+
+    def test_NEGATIVE_CREATE_registration_rejects_zipcode_not_five_digits(self):
+        payload = self._valid_registration_payload(zipcode="1462")
+        response = self.client.post("/registration/", payload)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(User.objects.filter(username="jamiegardner").exists())
+
+    def test_POSITIVE_CREATE_registration_preserves_leading_zero_zipcode(self):
+        payload = self._valid_registration_payload(username="zipleadingzero", email="zip.leading@example.com", zipcode="01234")
+        response = self.client.post("/registration/", payload)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "/login/")
+        created_user = User.objects.get(username="zipleadingzero")
+        created_profile = UserProfile.objects.get(user=created_user)
+        self.assertEqual(created_profile.zipCode, "01234")
+
     # TODO: Add component tests for email-normalization and username character constraints.

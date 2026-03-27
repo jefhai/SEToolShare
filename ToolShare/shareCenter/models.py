@@ -1,15 +1,18 @@
 from django.db import models
 from django import forms
+from django.core.validators import RegexValidator
 from django.contrib.auth.models import User
 from localflavor.us.us_states import STATE_CHOICES
 from messageCenter.models import Reservation
 from datetime import date
 
+ZIPCODE_VALIDATOR = RegexValidator(regex=r'^\d{5}$', message='Zip code must be exactly 5 digits.')
+
 # Creates a new user profile
 class UserProfile(models.Model):
     """Custom User"""
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    zipCode = models.IntegerField()
+    zipCode = models.CharField(max_length=5, validators=[ZIPCODE_VALIDATOR])
     sAddress = models.CharField(max_length=30)
     city = models.CharField(max_length=30)
     state = models.CharField(max_length=30)
@@ -18,6 +21,7 @@ class UserProfile(models.Model):
     
     @classmethod
     def create(cls, user, zipCode, streetAddress, state, city):
+        zipCode = str(zipCode).strip().zfill(5)
         profile = cls(user=user, zipCode=zipCode, sAddress=streetAddress, state=state, city=city, 
                       timesLent=0, timesBorrowed=0)
         return profile
@@ -41,7 +45,20 @@ class EditUserInfoForm(forms.Form):
     streetAddress = forms.CharField(label='Street Address', widget=forms.TextInput(attrs={'class':'form-control'}))
     city = forms.CharField(widget=forms.TextInput(attrs={'class':'form-control'}))
     state = forms.CharField(widget=forms.Select(choices=STATE_CHOICES, attrs={'class':'form-control'}))
-    zipcode = forms.IntegerField(max_value=99999, min_value=1, widget=forms.TextInput(attrs={'maxlength':5, 'class':'form-control red-tooltip', 'rel':"tooltip", 'title':"Warning! Changing ZipCode will delete your shed and take your tools out of sheds. ", 'data-placement':"left"}))
+    zipcode = forms.CharField(
+        max_length=5,
+        min_length=5,
+        validators=[ZIPCODE_VALIDATOR],
+        widget=forms.TextInput(attrs={
+            'maxlength': 5,
+            'class': 'form-control red-tooltip',
+            'rel': 'tooltip',
+            'title': 'Warning! Changing ZipCode will delete your shed and take your tools out of sheds. ',
+            'data-placement': 'left',
+            'pattern': '\\d{5}',
+            'inputmode': 'numeric',
+        }),
+    )
     email = forms.EmailField(widget=forms.TextInput(attrs={'class':'form-control'}))
 
 class EditPassword(forms.Form):
@@ -171,10 +188,11 @@ class CommunityShed(models.Model):
     owner = models.ForeignKey('UserProfile', on_delete=models.CASCADE)
     address = models.CharField(max_length=30)
     city = models.CharField(max_length=30)
-    zipcode = models.IntegerField()
+    zipcode = models.CharField(max_length=5, validators=[ZIPCODE_VALIDATOR])
 
     @classmethod
     def create(cls, owner, address, city, zipcode):
+        zipcode = str(zipcode).strip().zfill(5)
         newShed = cls(owner=owner, address=address, city=city, zipcode=zipcode)
         return newShed
     

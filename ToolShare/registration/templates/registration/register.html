@@ -9,6 +9,27 @@
  			<button type="submit" class="btn btn-primary btn-block">Create The Account</button>
 		</div><br>
 	</form>
-    <script type="text/javascript">document.forms.register.id_firstName.focus();</script>
+    <script type="text/javascript">
+    (function() {
+        if (document.forms.register && document.forms.register.id_firstName) {
+            document.forms.register.id_firstName.focus();
+        }
+
+        var zipInput = document.getElementById("id_zipcode");
+        if (!zipInput) {
+            return;
+        }
+
+        function normalizeZip() {
+            var digitsOnly = zipInput.value.replace(/\D/g, "").substring(0, 5);
+            zipInput.value = digitsOnly;
+        }
+
+        zipInput.addEventListener("input", normalizeZip);
+        zipInput.addEventListener("paste", function() {
+            window.setTimeout(normalizeZip, 0);
+        });
+    })();
+    </script>
 
 {% endblock %}

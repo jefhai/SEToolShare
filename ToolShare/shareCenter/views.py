@@ -174,11 +174,10 @@ def toolInfo(request, tool_id):
     if not request.user.is_staff:
         if tool.inShed():
             ownerAddress = toolLocation.address + ", " + toolLocation.city + ", " + owner.state
-            wellFormatedAddress = toolLocation.address + "\n" + toolLocation.city + ", " + owner.state + " " + str(
-                owner.zipCode).zfill(5)
+            wellFormatedAddress = toolLocation.address + "\n" + toolLocation.city + ", " + owner.state + " " + owner.zipCode
         else:
             ownerAddress = owner.sAddress + ", " + owner.city + ", " + owner.state
-            wellFormatedAddress = owner.sAddress + "\n" + owner.city + ", " + owner.state + " " + str(owner.zipCode).zfill(5)
+            wellFormatedAddress = owner.sAddress + "\n" + owner.city + ", " + owner.state + " " + owner.zipCode
 
     return render(request, 'sharecenter/toolinfo.html', {
         'tName': tName, 'tDesc': tDesc, 'ownerEmail': ownerEmail,
@@ -393,7 +392,7 @@ def editUserInfo(request, username):
             sAddress = form.cleaned_data['streetAddress']
             city = form.cleaned_data['city']
             state = form.cleaned_data['state']
-            zcode = form.cleaned_data['zipcode']
+            zcode = form.cleaned_data['zipcode'].strip().zfill(5)
             if zcode != currentUser.zipCode:
                 changeZipCode(request);
 
@@ -417,7 +416,7 @@ def editUserInfo(request, username):
         form = EditUserInfoForm(initial={'firstName': user.first_name, 'lastName': user.last_name, 'email': user.email,
                                          'streetAddress': currentUser.sAddress, 'city': currentUser.city,
                                          'state': currentUser.state,
-                                         'zipcode': currentUser.zipCode})                     # An unbound form
+                                         'zipcode': str(currentUser.zipCode).zfill(5)})                     # An unbound form
 
     return render(request, 'shareCenter/edituserinfo.html', {'form': form, 'username': username})
 

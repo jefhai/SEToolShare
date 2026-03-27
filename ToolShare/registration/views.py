@@ -23,7 +23,7 @@ def register(request):
             sAddress = form.cleaned_data['streetAddress']
             city = form.cleaned_data['city']
             state = form.cleaned_data['state']
-            zcode = form.cleaned_data['zipcode']     
+            zcode = form.cleaned_data['zipcode'].strip().zfill(5)
 
             # Tries to create a new user and add them to the database
             try:

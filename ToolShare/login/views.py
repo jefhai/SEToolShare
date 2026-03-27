@@ -34,7 +34,7 @@ def home(request):
 	bubbleCharArrayData = [["ShareZone", 'Reservations', 'Tool', 'Users']]
 	for sz in shareZones:
 		print(sz['zipCode'])
-		bubbleCharArrayData.append([str(sz['zipCode']), len(Reservation.objects.filter(tool__owner__zipCode=sz['zipCode'])),len(ToolModel.objects.filter(owner__zipCode=sz['zipCode'])), len(UserProfile.objects.filter(zipCode=sz['zipCode']))]
+		bubbleCharArrayData.append([str(sz['zipCode']).zfill(5), len(Reservation.objects.filter(tool__owner__zipCode=sz['zipCode'])),len(ToolModel.objects.filter(owner__zipCode=sz['zipCode'])), len(UserProfile.objects.filter(zipCode=sz['zipCode']))]
 		)
 	bubbleData=str(bubbleCharArrayData)
 

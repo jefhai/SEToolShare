@@ -17,7 +17,7 @@ class APITestBase(TestCase):
         first_name="Test",
         last_name="User",
         email=None,
-        zip_code=14623,
+        zip_code="14623",
         street_address="100 Maple St",
         city="Rochester",
         state="NY",
