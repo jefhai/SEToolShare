@@ -302,13 +302,15 @@ def shedList(request):
     if (request.user.is_staff):
         zipCode = 'ADMIN'
         sheds = CommunityShed.objects.all()
+        hasShed = False
     else:
         currentUser = UserProfile.objects.get(user_id=request.user.id)
         sheds = CommunityShed.objects.filter(zipcode=currentUser.zipCode)
         zipCode = currentUser.zipCode
+        hasShed = currentUser.hasShed()
 
     return render(request, 'sharecenter/shedlist.html', {
-        'sheds': sheds, 'zipCode': zipCode, 'numSheds': len(sheds), 'hasShed': currentUser.hasShed()})
+        'sheds': sheds, 'zipCode': zipCode, 'numSheds': len(sheds), 'hasShed': hasShed})
 
 #************************************************************************************    
 
