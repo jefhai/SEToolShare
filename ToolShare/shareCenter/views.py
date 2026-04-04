@@ -215,13 +215,14 @@ def toolInfo(request, tool_id):
         user_id=request.user.id).city + ", " + UserProfile.objects.get(user_id=request.user.id).state
     ownerAddress = ""
     wellFormatedAddress = ""
+    ownerZipCode = str(owner.zipCode).zfill(5)
     if not request.user.is_staff:
         if tool.inShed():
             ownerAddress = toolLocation.address + ", " + toolLocation.city + ", " + owner.state
-            wellFormatedAddress = toolLocation.address + "\n" + toolLocation.city + ", " + owner.state + " " + owner.zipCode
+            wellFormatedAddress = toolLocation.address + "\n" + toolLocation.city + ", " + owner.state + " " + ownerZipCode
         else:
             ownerAddress = owner.sAddress + ", " + owner.city + ", " + owner.state
-            wellFormatedAddress = owner.sAddress + "\n" + owner.city + ", " + owner.state + " " + owner.zipCode
+            wellFormatedAddress = owner.sAddress + "\n" + owner.city + ", " + owner.state + " " + ownerZipCode
 
     return render(request, 'sharecenter/toolinfo.html', {
         'tName': tName, 'tDesc': tDesc, 'ownerEmail': ownerEmail,
