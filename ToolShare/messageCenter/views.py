@@ -88,7 +88,7 @@ def messageView(request, message_id):
                 AlertMessage.create(currentUser, UserProfile.objects.get(id=msg.sender.id), sub, content, False, 0).save()
             except ValueError:
                 messages.add_message(request, messages.INFO, 'There was an error sending your message.', extra_tags='alert-danger')
-                return render(request, 'messageCenter/viewMessage.html', {'msg': msg, 'form': SendMessageForm(), 'formError': False,
+                return render(request, 'messagecenter/viewmessage.html', {'msg': msg, 'form': SendMessageForm(), 'formError': False,
                                                                           'doesConflict': doesConflict}, status=400)
             messages.add_message(request, messages.INFO, 'Reply Sent.', extra_tags='alert-success')
         
@@ -98,7 +98,7 @@ def messageView(request, message_id):
             return HttpResponseRedirect('/messagecenter/delete/' + str(msg.id))     # Redirect after POST
 
         messages.add_message(request, messages.INFO, 'There was an error sending your message.', extra_tags='alert-danger')
-        return render(request, 'messageCenter/viewMessage.html', {'msg': msg, 'form': SendMessageForm(), 'formError': False,
+        return render(request, 'messagecenter/viewmessage.html', {'msg': msg, 'form': SendMessageForm(), 'formError': False,
                                                                   'doesConflict': doesConflict}, status=400)
 
     else:   # Message is being read, not replied to
@@ -117,7 +117,7 @@ def messageView(request, message_id):
             form = SendMessageForm()                    # An unbound form
     
     
-    return render(request, 'messageCenter/viewMessage.html', {'msg': msg, 'form': form, 'formError': False,
+    return render(request, 'messagecenter/viewmessage.html', {'msg': msg, 'form': form, 'formError': False,
                                                               'doesConflict': doesConflict})
     
 
@@ -137,7 +137,7 @@ def inboxView(request):
         
         allMessages = AlertMessage.objects.filter( receiver__user_id=currentUser.user_id ).order_by('id').reverse()
                                             
-    return render(request, 'messageCenter/inboxView.html', {
+    return render(request, 'messagecenter/inboxview.html', {
         'allMessages': allMessages, 'numMessages': len(allMessages)
     })
 
@@ -155,7 +155,7 @@ def sendMessage(request, user_id):
         raw_content = request.POST.get('content', '')
         if len(raw_content) > _message_max_length():
             messages.add_message(request, messages.INFO, 'There was an error sending your message.', extra_tags='alert-danger')
-            return render(request, 'messageCenter/sendMessage.html', {
+            return render(request, 'messagecenter/sendmessage.html', {
                 'form': SendMessageForm(), 'user_id': user_id, 'receiver': User.objects.get(id=user_id)
             }, status=400)
         if form.is_valid():                     # All validation rules pass
@@ -169,7 +169,7 @@ def sendMessage(request, user_id):
             messages.add_message(request, messages.INFO, 'Message Sent.', extra_tags='alert-success')
             return HttpResponseRedirect('/tooldirectory/')     # Redirect after POST
         messages.add_message(request, messages.INFO, 'There was an error sending your message.', extra_tags='alert-danger')
-        return render(request, 'messageCenter/sendMessage.html', {
+        return render(request, 'messagecenter/sendmessage.html', {
             'form': SendMessageForm(), 'user_id': user_id, 'receiver': User.objects.get(id=user_id)
         }, status=400)
     else:
@@ -177,7 +177,7 @@ def sendMessage(request, user_id):
     
     
                                             
-    return render(request, 'messageCenter/sendMessage.html', {
+    return render(request, 'messagecenter/sendmessage.html', {
         'form': form, 'user_id': user_id, 'receiver':User.objects.get(id=user_id)
     })
     
@@ -199,7 +199,7 @@ def sendToolRequest(request, toolId):
         raw_message = request.POST.get('message', '')
         if len(raw_message) > _message_max_length():
             messages.add_message(request, messages.INFO, 'There was an error sending your request message.', extra_tags='alert-danger')
-            return render(request, 'messageCenter/sendRequest.html', {
+            return render(request, 'messagecenter/sendrequest.html', {
                 'form': MakeRequest(), 'toolId': toolId, 'conflict': False, 'curRes': curRes, 'tool': ToolModel.objects.get(id=toolId)
             }, status=400)
         if form.is_valid():                     # All validation rules pass
@@ -214,7 +214,7 @@ def sendToolRequest(request, toolId):
             
             if (endDate < startDate):
                 form = MakeRequest()
-                return render(request, 'messageCenter/sendRequest.html', {
+                return render(request, 'messagecenter/sendrequest.html', {
                     'form': form, 'toolId': toolId, 'conflict': True, 'conflicts': conflictingReservations, 'curRes': curRes, 'tool': ToolModel.objects.get(id=toolId)
                 })
             
@@ -227,7 +227,7 @@ def sendToolRequest(request, toolId):
                     
             if len(conflictingReservations) > 0:
                 form = MakeRequest()
-                return render(request, 'messageCenter/sendRequest.html', {
+                return render(request, 'messagecenter/sendrequest.html', {
                     'form': form, 'toolId': toolId, 'conflict': True, 'conflicts': conflictingReservations, 'curRes':curRes, 'tool': ToolModel.objects.get(id=toolId)
                 })
               
@@ -243,7 +243,7 @@ def sendToolRequest(request, toolId):
                     AlertMessage.create(currentUser, UserProfile.objects.get(id=shed.owner_id), "Message", content, False, toolId, startDate, endDate).save()
                 except ValueError:
                     messages.add_message(request, messages.INFO, 'There was an error sending your request message.', extra_tags='alert-danger')
-                    return render(request, 'messageCenter/sendRequest.html', {
+                    return render(request, 'messagecenter/sendrequest.html', {
                         'form': MakeRequest(), 'toolId': toolId, 'conflict': False, 'curRes': curRes, 'tool': ToolModel.objects.get(id=toolId)
                     }, status=400)
 
@@ -267,7 +267,7 @@ def sendToolRequest(request, toolId):
                     AlertMessage.create(currentUser, UserProfile.objects.get(id=currTool.owner_id), "Request", content, True, toolId, startDate, endDate).save()
                 except ValueError:
                     messages.add_message(request, messages.INFO, 'There was an error sending your request message.', extra_tags='alert-danger')
-                    return render(request, 'messageCenter/sendRequest.html', {
+                    return render(request, 'messagecenter/sendrequest.html', {
                         'form': MakeRequest(), 'toolId': toolId, 'conflict': False, 'curRes': curRes, 'tool': ToolModel.objects.get(id=toolId)
                     }, status=400)
 
@@ -280,11 +280,11 @@ def sendToolRequest(request, toolId):
         
     if request.method == 'POST':
         messages.add_message(request, messages.INFO, 'There was an error sending your request message.', extra_tags='alert-danger')
-        return render(request, 'messageCenter/sendRequest.html', {
+        return render(request, 'messagecenter/sendrequest.html', {
             'form': MakeRequest(), 'toolId': toolId, 'conflict': False, 'curRes': curRes, 'tool': ToolModel.objects.get(id=toolId)
         }, status=400)
 
-    return render(request, 'messageCenter/sendRequest.html', {
+    return render(request, 'messagecenter/sendrequest.html', {
         'form': form, 'toolId': toolId, 'conflict': False, 'curRes':curRes, 'tool': ToolModel.objects.get(id=toolId)
     })
     

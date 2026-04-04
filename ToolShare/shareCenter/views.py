@@ -73,7 +73,7 @@ def addTool(request):
     else:
         form = AddToolForm(possibleLocations)    # An unbound form
 
-    return render(request, 'shareCenter/addtool.html', {'form': form})
+    return render(request, 'sharecenter/addtool.html', {'form': form})
 
 #************************************************************************************
 
@@ -172,7 +172,7 @@ def toolDirectory(request):
         query_params.pop('page')
     pagination_query = query_params.urlencode()
 
-    return render(request, 'shareCenter/tooldirectory.html', {
+    return render(request, 'sharecenter/tooldirectory.html', {
         'alltools': page_obj.object_list,
         'page_obj': page_obj,
         'zipCode': zipCode,
@@ -431,7 +431,7 @@ def editTool(request, tool_id):
                                                         'pickup_info': currTool.pickupInformation, 'location': initLoc,
                                                         'available': currTool.available})    # An unbound form
 
-    return render(request, 'shareCenter/edittool.html', {
+    return render(request, 'sharecenter/edittool.html', {
         'form': form, 'tool_id': tool_id})
 
 #************************************************************************************
@@ -481,7 +481,7 @@ def editUserInfo(request, username):
                                          'state': currentUser.state,
                                          'zipcode': str(currentUser.zipCode).zfill(5)})                     # An unbound form
 
-    return render(request, 'shareCenter/edituserinfo.html', {'form': form, 'username': username})
+    return render(request, 'sharecenter/edituserinfo.html', {'form': form, 'username': username})
 
 #************************************************************************************ 
 
@@ -523,7 +523,7 @@ def editPassword(request):
     else:
         form = EditPassword(request.user)                     # An unbound form
 
-    return render(request, 'shareCenter/editpassword.html', {'form': form})
+    return render(request, 'sharecenter/editpassword.html', {'form': form})
 
     #************************************************************************************
 
