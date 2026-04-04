@@ -119,7 +119,7 @@
 	        </ul>
 	      </li>
 
-          <li><a href="/messagecenter/" rel="tooltip" data-toggle="tooltip" title="You have {{msgAmount}} unread messages." data-placement="bottom">Messages</span> <span class="badge">{{msgAmount}}</span></a></li>
+          <li><a href="/messagecenter/" rel="tooltip" data-toggle="tooltip" title="You have {{msgAmount}} unread messages." data-placement="bottom">Messages</span> <span class="badge"{% if msgAmount %} style="background-color: #d9534f;"{% endif %}>{{msgAmount}}</span></a></li>
           <li><a href="/logout/">Logout</a></li>
         {% else %}
           <li><a href="/login/">Login</a></li>
@@ -168,7 +168,7 @@
     </div>
     <footer class="navbar-default container" style="margin-top: 20px; border-radius: 5px" role="navigation">
       <!-- Brand and toggle get grouped for better mobile display -->
-        <h5 style="text-align: center">Created by <a href="/login/credits/">Group 2</a> · SWEN261-04</h5>
+        <h5 style="text-align: center"><a href="/login/credits/">Credits</a></h5>
       </footer>
     </div>
     <script type="text/javascript">$('[rel=tooltip]').tooltip(); </script>

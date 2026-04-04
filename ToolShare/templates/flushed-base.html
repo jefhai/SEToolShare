@@ -92,7 +92,7 @@
             </ul>
           </li>
           
-          <li><a href="/messagecenter/">Messages <span class="badge">{{msgAmount}}</span></a></li>
+          <li><a href="/messagecenter/">Messages <span class="badge"{% if msgAmount %} style="background-color: #d9534f;"{% endif %}>{{msgAmount}}</span></a></li>
           <li><a href="/logout/">Logout</a></li>
         {% else %}
           <li><a href="/login/">Login</a></li>
@@ -128,7 +128,7 @@
     </div>
     <footer class="navbar-fixed-bottom" style="margin-top: 20px; background-color: #FFFFFF;">
       <!-- Brand and toggle get grouped for better mobile display -->
-        <h5 style="text-align: center">Created by Group 2 · SWEN261- 04</h5>
+        <h5 style="text-align: center"><a href="/login/credits/">Credits</a></h5>
       </footer>
     </div>
     </div>
