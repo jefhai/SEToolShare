@@ -7,9 +7,15 @@
 	{% if user.is_authenticated %}
 	   <h1 style="text-align: center; ">You are logged in!</h1> 
 	{% else %}
-	  
-    <form action="/login/" id="login" class="container" style="background-color: #FFFFFF; max-width: 450px; border-radius: 8px;"  method="post">{% csrf_token %}
-    	<h1 style="text-align: center">Login to Your Account</h1>
+
+    <form action="/login/" id="login" class="container" style="background-color: #FFFFFF; max-width: 450px; border-radius: 8px; padding-top: 15px;"  method="post">{% csrf_token %}
+	    	<div style="max-width: 300px; margin: 0 auto;">
+	    	    <a href="/home/" class="btn btn-success btn-lg btn-block">Try Demo</a>
+	    	</div>
+            <div style="text-align: center; margin: 10px 0;">
+                <strong>OR</strong>
+            </div>
+	    	<h1 style="text-align: center">Login to Your Account</h1>
     	<div class="form-group container" style="max-width: 300px;">
     		{{form.as_p}}
     		<button type="submit" class="btn btn-primary">Login</button>
