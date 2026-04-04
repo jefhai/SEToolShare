@@ -426,85 +426,93 @@ def _seed_demo_inbox_messages(demo_profile, neighbors):
 
 
 def startDemo(request):
-    if request.user.is_authenticated:
-        logout(request)
+    if request.session.get('demo_in_progress'):
+        return HttpResponseRedirect('/home/')
 
-    _cleanup_expired_demo_users()
+    request.session['demo_in_progress'] = True
+    request.session.modified = True
+    try:
+        if request.user.is_authenticated:
+            logout(request)
 
-    with transaction.atomic():
-        demo_scope = get_random_string(10, allowed_chars='abcdefghijklmnopqrstuvwxyz0123456789')
-        username = _create_demo_username('Alex', 'Morgan')
-        password = _random_uuid_password()
-        demo_user = User.objects.create_user(
-            username=username,
-            email=username + '@' + DEMO_EMAIL_DOMAIN,
-            password=password,
-            first_name='Alex',
-            last_name='Morgan',
-        )
-        DemoUserScope.objects.create(user=demo_user, scope=demo_scope, role='student')
+        _cleanup_expired_demo_users()
 
-        demo_profile = UserProfile.create(
-            demo_user,
-            DEMO_ZIPCODE,
-            DEMO_RIT_ADDRESS,
-            DEMO_STATE,
-            DEMO_CITY,
-        )
-        demo_profile.save()
-
-        demo_shed = CommunityShed.create(demo_profile, DEMO_RIT_ADDRESS, DEMO_CITY, DEMO_ZIPCODE)
-        demo_shed.save()
-
-        _create_demo_tool(demo_profile, demo_shed)
-        _create_demo_tool(demo_profile, demo_shed)
-        for _ in range(random.randint(1, 3)):
-            _create_demo_tool(demo_profile, random.choice([None, demo_shed]))
-
-        randomized_profiles = []
-        random_user_count = random.randint(10, 15)
-        random_shed_count = random.randint(10, 15)
-
-        for first_name, last_name, email, address in random.sample(DEMO_PERSONAS, random_user_count):
-            neighbor_username = _create_demo_username(first_name, last_name)
-            neighbor_user = User.objects.create_user(
-                username=neighbor_username,
-                email=neighbor_username + '@' + DEMO_EMAIL_DOMAIN,
-                password=_random_uuid_password(),
-                first_name=first_name,
-                last_name=last_name,
+        with transaction.atomic():
+            demo_scope = get_random_string(10, allowed_chars='abcdefghijklmnopqrstuvwxyz0123456789')
+            username = _create_demo_username('Alex', 'Morgan')
+            password = _random_uuid_password()
+            demo_user = User.objects.create_user(
+                username=username,
+                email=username + '@' + DEMO_EMAIL_DOMAIN,
+                password=password,
+                first_name='Alex',
+                last_name='Morgan',
             )
-            DemoUserScope.objects.create(user=neighbor_user, scope=demo_scope, role='neighbor')
-            neighbor_profile = UserProfile.create(
-                neighbor_user,
+            DemoUserScope.objects.create(user=demo_user, scope=demo_scope, role='student')
+
+            demo_profile = UserProfile.create(
+                demo_user,
                 DEMO_ZIPCODE,
-                address,
+                DEMO_RIT_ADDRESS,
                 DEMO_STATE,
                 DEMO_CITY,
             )
-            neighbor_profile.save()
-            randomized_profiles.append(neighbor_profile)
+            demo_profile.save()
 
-        shed_owners = random.sample(randomized_profiles, min(random_shed_count, len(randomized_profiles)))
-        for shed_owner in shed_owners:
-            shed = CommunityShed.create(shed_owner, shed_owner.sAddress, DEMO_CITY, DEMO_ZIPCODE)
-            shed.save()
-            for _ in range(random.randint(2, 4)):
-                _create_demo_tool(shed_owner, random.choice([None, shed]))
+            demo_shed = CommunityShed.create(demo_profile, DEMO_RIT_ADDRESS, DEMO_CITY, DEMO_ZIPCODE)
+            demo_shed.save()
 
-        all_demo_profiles = [demo_profile] + randomized_profiles
-        all_demo_tools = list(ToolModel.objects.filter(owner__in=all_demo_profiles))
-        _seed_demo_reservations(all_demo_tools, randomized_profiles)
-        _seed_demo_user_reservation_journey(demo_profile, randomized_profiles)
-        demo_owner_tools = [tool for tool in all_demo_tools if tool.owner_id == demo_profile.id]
-        _seed_demo_requests_to_owner(demo_profile, randomized_profiles, demo_owner_tools)
-        _seed_demo_inbox_messages(demo_profile, randomized_profiles)
-        _update_demo_usage_counts(all_demo_profiles, all_demo_tools)
-        _send_demo_welcome_message(demo_profile)
+            _create_demo_tool(demo_profile, demo_shed)
+            _create_demo_tool(demo_profile, demo_shed)
+            for _ in range(random.randint(1, 3)):
+                _create_demo_tool(demo_profile, random.choice([None, demo_shed]))
 
-    login(request, demo_user)
-    request.session['is_demo_session'] = True
-    return HttpResponseRedirect('/tooldirectory/')
+            randomized_profiles = []
+            random_user_count = random.randint(10, 15)
+            random_shed_count = random.randint(10, 15)
+
+            for first_name, last_name, email, address in random.sample(DEMO_PERSONAS, random_user_count):
+                neighbor_username = _create_demo_username(first_name, last_name)
+                neighbor_user = User.objects.create_user(
+                    username=neighbor_username,
+                    email=neighbor_username + '@' + DEMO_EMAIL_DOMAIN,
+                    password=_random_uuid_password(),
+                    first_name=first_name,
+                    last_name=last_name,
+                )
+                DemoUserScope.objects.create(user=neighbor_user, scope=demo_scope, role='neighbor')
+                neighbor_profile = UserProfile.create(
+                    neighbor_user,
+                    DEMO_ZIPCODE,
+                    address,
+                    DEMO_STATE,
+                    DEMO_CITY,
+                )
+                neighbor_profile.save()
+                randomized_profiles.append(neighbor_profile)
+
+            shed_owners = random.sample(randomized_profiles, min(random_shed_count, len(randomized_profiles)))
+            for shed_owner in shed_owners:
+                shed = CommunityShed.create(shed_owner, shed_owner.sAddress, DEMO_CITY, DEMO_ZIPCODE)
+                shed.save()
+                for _ in range(random.randint(2, 4)):
+                    _create_demo_tool(shed_owner, random.choice([None, shed]))
+
+            all_demo_profiles = [demo_profile] + randomized_profiles
+            all_demo_tools = list(ToolModel.objects.filter(owner__in=all_demo_profiles))
+            _seed_demo_reservations(all_demo_tools, randomized_profiles)
+            _seed_demo_user_reservation_journey(demo_profile, randomized_profiles)
+            demo_owner_tools = [tool for tool in all_demo_tools if tool.owner_id == demo_profile.id]
+            _seed_demo_requests_to_owner(demo_profile, randomized_profiles, demo_owner_tools)
+            _seed_demo_inbox_messages(demo_profile, randomized_profiles)
+            _update_demo_usage_counts(all_demo_profiles, all_demo_tools)
+            _send_demo_welcome_message(demo_profile)
+
+        login(request, demo_user)
+        request.session['is_demo_session'] = True
+        return HttpResponseRedirect('/tooldirectory/')
+    finally:
+        request.session['demo_in_progress'] = False
 
 # Home Page method
 def home(request):
