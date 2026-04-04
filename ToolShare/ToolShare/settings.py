@@ -82,6 +82,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'login.middleware.DemoSessionRecoveryMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 ]
 
@@ -136,6 +137,16 @@ TOOLS_DIRECTORY_PAGE_SIZE = 20
 SHEDS_DIRECTORY_PAGE_SIZE = 20
 USERS_DIRECTORY_PAGE_SIZE = 20
 DISABLE_USER_REGISTRATION = False
+GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', '')
+DEMO_CONTACT_USERNAME = os.getenv('DEMO_CONTACT_USERNAME', 'jefhai')
+DEMO_CONTACT_EMAIL = os.getenv('DEMO_CONTACT_EMAIL', 'contact@jefhai.com')
+DEMO_CONTACT_WEBSITE = os.getenv('DEMO_CONTACT_WEBSITE', 'jefhai.com')
+DEMO_CONTACT_LINKEDIN = os.getenv('DEMO_CONTACT_LINKEDIN', 'https://www.linkedin.com/in/jefhai')
+DEMO_CONTACT_GITHUB = os.getenv('DEMO_CONTACT_GITHUB', 'https://github.com/jefhai')
+DEMO_WELCOME_MESSAGE = os.getenv(
+    'DEMO_WELCOME_MESSAGE',
+    'Thank you for taking the time to explore the Tool Share demo. Whether you are visiting for the first time, reconnecting, or evaluating my work for a potential opportunity, I appreciate you being here.\n\nTool Share began as a 2014 RIT class project and has since been modernized with the Django 6 Python web framework, with additional product and UX polish accelerated by OpenAI Codex. I am passionate about building high-quality products end to end - from concept and implementation to production delivery and performance tuning - and I bring over a decade of hands-on experience before and after the AI era.',
+)
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to

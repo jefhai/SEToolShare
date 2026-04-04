@@ -1,6 +1,7 @@
 from django.db import models
 from django import forms
 from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
 
 # Creates a new login form 
 class loginForm(forms.Form):
@@ -23,3 +24,9 @@ class loginForm(forms.Form):
         password = self.cleaned_data.get('password')
         user = authenticate(username=username, password=password)
         return user
+
+
+class DemoUserScope(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    scope = models.CharField(max_length=20)
+    role = models.CharField(max_length=10)

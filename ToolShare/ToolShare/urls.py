@@ -4,13 +4,14 @@ from django.contrib import admin
 from django.urls import include, path, re_path
 
 admin.autodiscover()
-from login.views import logoutUser, home
+from login.views import logoutUser, home, startDemo
 from shareCenter.views import toolDirectory
 
 urlpatterns = [
     path('registration/', include('registration.urls', namespace='registration')),
     path('login/', include('login.urls', namespace='login')),
     path('logout/', logoutUser),
+    path('demo/', startDemo),
     path('home/', home),
     path('sharecenter/', include('shareCenter.urls', namespace='sharecenter')),
     path('tooldirectory/', toolDirectory),

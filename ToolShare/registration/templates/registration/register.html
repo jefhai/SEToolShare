@@ -3,16 +3,26 @@
 {% block content %}
   
 	<form action="/registration/" id="register" class="container " style="max-width: 350px; border-radius: 8px; background-color: #FFFFFF" method="post">{% csrf_token %}
+	{% if registration_disabled %}
+	<div class="alert alert-warning" style="margin-top: 15px;">
+		<strong>User registration is currently disabled.</strong>
+		Try the guided demo experience instead.
+		<div style="margin-top: 10px; text-align: center;">
+			<a href="/demo/" class="btn btn-success">Try Demo</a>
+		</div>
+	</div>
+	{% endif %}
 	<h1 style="text-align: center">Register for an Account</h1>
 		{% if registration_disabled %}
-		<div class="alert alert-warning">
-			Registration is currently disabled. Please check back later.
-		</div>
+		<fieldset disabled>
 		{% endif %}
 		<div class="form-group container">
 				{{form.as_p}}
 	 		<button type="submit" class="btn btn-primary btn-block" {% if registration_disabled %}disabled aria-disabled="true"{% endif %}>Create The Account</button>
 		</div><br>
+		{% if registration_disabled %}
+		</fieldset>
+		{% endif %}
 	</form>
     <script type="text/javascript">
     (function() {

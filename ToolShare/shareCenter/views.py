@@ -4,25 +4,41 @@ from django.template import RequestContext, loader
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
+from django.db.models import Q
 from django.conf import settings
 from django.contrib.auth.models import User
+from login.models import DemoUserScope
 from shareCenter.models import ToolModel, UserProfile, AddToolForm, EditToolForm, EditPassword, EditUserInfoForm, AddCommunityShedForm, CommunityShed, ToolSearchForm
 from messageCenter.models import Reservation, AlertMessage
 from django.contrib import messages
 from datetime import date
 from django.utils import formats
 
+def _scoped_demo_profiles(current_user):
+    demo_scope = DemoUserScope.objects.filter(user=current_user).first()
+    if demo_scope is None:
+        return None
+    contact_username = getattr(settings, 'DEMO_CONTACT_USERNAME', 'jefhai')
+    return UserProfile.objects.filter(
+        Q(user__demouserscope__scope=demo_scope.scope) |
+        Q(user__username=contact_username)
+    ).distinct()
+
 # Add tool method
 def addTool(request):
     if not request.user.is_authenticated:
         return HttpResponseRedirect('/login/')
 
+    currentUser = UserProfile.objects.get(user_id=request.user.id)
 
     possibleLocations = [(0, 'Home')]
 
     if not request.user.is_staff:
-        currentUser = UserProfile.objects.get(user_id=request.user.id)
-        sheds = CommunityShed.objects.filter(zipcode=currentUser.zipCode)
+        demo_profiles = _scoped_demo_profiles(request.user)
+        if demo_profiles is not None:
+            sheds = CommunityShed.objects.filter(owner__in=demo_profiles)
+        else:
+            sheds = CommunityShed.objects.filter(zipcode=currentUser.zipCode)
 
         for shed in sheds:
             shedOwner = User.objects.get(id=shed.owner.user_id)
@@ -86,7 +102,11 @@ def toolDirectory(request):
 
     if not (request.user.is_staff):
         currentUser = UserProfile.objects.get(user_id=request.user.id)
-        sheds = CommunityShed.objects.filter(zipcode=currentUser.zipCode)
+        demo_profiles = _scoped_demo_profiles(request.user)
+        if demo_profiles is not None:
+            sheds = CommunityShed.objects.filter(owner__in=demo_profiles)
+        else:
+            sheds = CommunityShed.objects.filter(zipcode=currentUser.zipCode)
     else:
         sheds = CommunityShed.objects.all()
 
@@ -100,9 +120,14 @@ def toolDirectory(request):
         zipCode = 'ADMIN'
         alltools = ToolModel.objects.all()
     else:
-        communityMembers = UserProfile.objects.filter(zipCode=currentUser.zipCode)
+        demo_profiles = _scoped_demo_profiles(request.user)
+        if demo_profiles is not None:
+            communityMembers = demo_profiles
+            alltools = ToolModel.objects.filter(owner__in=demo_profiles).order_by('-id')
+        else:
+            communityMembers = UserProfile.objects.filter(zipCode=currentUser.zipCode)
+            alltools = ToolModel.objects.filter(owner_id__zipCode=currentUser.zipCode).order_by('-id')
         zipCode = currentUser.zipCode
-        alltools = ToolModel.objects.filter(owner_id__zipCode=currentUser.zipCode).order_by('-id')
 
     request_params = request.GET
     if request_params:
@@ -202,7 +227,9 @@ def toolInfo(request, tool_id):
         'tName': tName, 'tDesc': tDesc, 'ownerEmail': ownerEmail,
         'pickupInfo': pickupInfo, 'availability': availability,
         'ownerUsername': ownerUsername, 'ownerId': owner.user_id, 'tool': tool, 'tLoc': tLoc,
-        'ownerAddress': ownerAddress, 'userAddress': userAddress, 'wellFormatedAddress': wellFormatedAddress})
+        'ownerAddress': ownerAddress, 'userAddress': userAddress, 'wellFormatedAddress': wellFormatedAddress,
+        'google_maps_api_key': getattr(settings, 'GOOGLE_MAPS_API_KEY', ''),
+    })
 
 #************************************************************************************
 
@@ -324,7 +351,11 @@ def shedList(request):
         hasShed = False
     else:
         currentUser = UserProfile.objects.get(user_id=request.user.id)
-        sheds = CommunityShed.objects.filter(zipcode=currentUser.zipCode).order_by('-id')
+        demo_profiles = _scoped_demo_profiles(request.user)
+        if demo_profiles is not None:
+            sheds = CommunityShed.objects.filter(owner__in=demo_profiles).order_by('-id')
+        else:
+            sheds = CommunityShed.objects.filter(zipcode=currentUser.zipCode).order_by('-id')
         zipCode = currentUser.zipCode
         hasShed = currentUser.hasShed()
 
@@ -351,7 +382,11 @@ def editTool(request, tool_id):
 
     if not (request.user.is_staff):
         currentUser = UserProfile.objects.get(user_id=request.user.id)
-        sheds = CommunityShed.objects.filter(zipcode=currentUser.zipCode)
+        demo_profiles = _scoped_demo_profiles(request.user)
+        if demo_profiles is not None:
+            sheds = CommunityShed.objects.filter(owner__in=demo_profiles)
+        else:
+            sheds = CommunityShed.objects.filter(zipcode=currentUser.zipCode)
 
         for shed in sheds:
             shedOwner = User.objects.get(id=shed.owner.user_id)
@@ -505,7 +540,11 @@ def userDirectory(request):
 
     else:
         zipCode = currentUser.zipCode
-        allUsers = UserProfile.objects.filter(zipCode=currentUser.zipCode).order_by('user__username')
+        demo_profiles = _scoped_demo_profiles(request.user)
+        if demo_profiles is not None:
+            allUsers = demo_profiles.order_by('user__username')
+        else:
+            allUsers = UserProfile.objects.filter(zipCode=currentUser.zipCode).order_by('user__username')
         numUsers = allUsers.count()
 
     paginator = Paginator(allUsers, page_size)
@@ -550,7 +589,11 @@ def deleteShed(request):
     if len(myShed) == 0:
         return HttpResponseRedirect('/tooldirectory/')
     myShed = CommunityShed.objects.get(owner_id=currentUser.id)
-    allTools = ToolModel.objects.filter(owner__zipCode=currentUser.zipCode, location=myShed.id)
+    demo_profiles = _scoped_demo_profiles(request.user)
+    if demo_profiles is not None:
+        allTools = ToolModel.objects.filter(owner__in=demo_profiles, location=myShed.id)
+    else:
+        allTools = ToolModel.objects.filter(owner__zipCode=currentUser.zipCode, location=myShed.id)
 
     for t in allTools:
         t.location = None

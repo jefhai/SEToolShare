@@ -3,10 +3,22 @@ from django.contrib.auth.forms import UserCreationForm
 from django.template import RequestContext, loader
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
+from django.conf import settings
 from django.contrib.auth.models import User
+from login.models import DemoUserScope
 from shareCenter.models import ToolModel, UserProfile
 from messageCenter.models import Reservation
 from datetime import date
+
+
+def _scoped_demo_profiles(current_user):
+    demo_scope = DemoUserScope.objects.filter(user=current_user).first()
+    if demo_scope is None:
+        return None
+    contact_username = getattr(settings, 'DEMO_CONTACT_USERNAME', 'jefhai')
+    return UserProfile.objects.filter(
+        user__demouserscope__scope=demo_scope.scope
+    ) | UserProfile.objects.filter(user__username=contact_username)
 
 def statReport(request):
     if not request.user.is_authenticated:
@@ -21,8 +33,13 @@ def statReport(request):
         allTools = ToolModel.objects.all()
         numUsers = len(allUsers) - 1
     else:
-        allUsers = UserProfile.objects.filter(zipCode=currentUser.zipCode)
-        allTools = ToolModel.objects.filter(owner__zipCode=currentUser.zipCode)
+        demo_profiles = _scoped_demo_profiles(request.user)
+        if demo_profiles is not None:
+            allUsers = demo_profiles
+            allTools = ToolModel.objects.filter(owner__in=demo_profiles)
+        else:
+            allUsers = UserProfile.objects.filter(zipCode=currentUser.zipCode)
+            allTools = ToolModel.objects.filter(owner__zipCode=currentUser.zipCode)
         numUsers = len(allUsers)
 
 
@@ -74,7 +91,11 @@ def statReport(request):
     mostActivity = UserProfile.objects.extra(
         select={'activityCount': 'timesLent + timesBorrowed'}, order_by=('-activityCount',)
     )
-    mostActivity = mostActivity.filter(zipCode=currentUser.zipCode)
+    demo_profiles = _scoped_demo_profiles(request.user)
+    if demo_profiles is not None:
+        mostActivity = mostActivity.filter(id__in=demo_profiles.values_list('id', flat=True))
+    else:
+        mostActivity = mostActivity.filter(zipCode=currentUser.zipCode)
 
     if len(mostActivity) > 5:
         mostActivity = mostActivity[0:5]

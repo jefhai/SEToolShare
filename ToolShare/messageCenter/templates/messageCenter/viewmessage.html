@@ -14,7 +14,7 @@
 	    
 	    
 	    <h2><b>From:</b> {{msg.senderUsername}}</h2><br>
-	    <p>{{msg.content|linebreaks}}</p>
+	    <p>{{msg.content|linebreaksbr|urlize}}</p>
 	    <h1 class="page-header"style="text-align: center;"></h1>
 	    {% if msg.isRequest %}
         {% if doesConflict %}
